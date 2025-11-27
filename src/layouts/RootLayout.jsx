@@ -1,29 +1,18 @@
-import { Outlet, Link } from "react-router-dom";
+import { Outlet } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 export default function RootLayout() {
   return (
-    <>
-      <header className="p-4 shadow">
-        <nav className="container mx-auto flex items-center justify-between">
-          <div>
-            <Link to="/" className="font-bold text-xl">
-              Warung Alzhim
-            </Link>
-          </div>
-          <div className="space-x-4">
-            <Link to="/">Home</Link>
-            <Link to="/products/1">Sample Product</Link>
-            <Link to="/cart">Cart</Link>
-            <Link to="/login">Login</Link>
-          </div>
-        </nav>
-      </header>
-
-      <main className="container mx-auto p-4">
+    <div className="min-h-screen bg-neutral-100">
+      {/* Navbar akan muncul di semua halaman */}
+      <Navbar />
+      
+      {/* Outlet akan diganti dengan konten halaman sesuai route */}
+      <main className="px-4 md:px-6 lg:px-8 xl:px-18">
         <Outlet />
       </main>
-
-      <footer className="p-4 text-center text-sm">© Warung Alzhim</footer>
-    </>
+      <Footer />
+    </div>
   );
 }
