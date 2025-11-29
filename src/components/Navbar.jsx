@@ -14,7 +14,7 @@ import LogoutConfirmationModal from "./LogoutConfirmationModal";
 
 export default function Navbar() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Ubah ke false untuk test tampilan guest
+  const [isLoggedIn, setIsLoggedIn] = useState(true); // Ubah ke false untuk test tampilan guest
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isPopupOpenDesktop, setIsPopupOpenDesktop] = useState(false);
@@ -154,7 +154,7 @@ export default function Navbar() {
           </div>
 
           {/* DESKTOP RIGHT SECTION */}
-          <div className="hidden sm:flex items-center gap-4 shrink-0">
+          <div className="hidden sm:flex items-center gap-6 shrink-0">
             {!isLoggedIn ? (
               <>
                 <Link to="/register">
@@ -170,16 +170,16 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <Link to="/cart" className="relative text-primary-700 text-2xl">
+                <Link to="/cart" className="relative text-primary-700 text-2xl pt-2">
                   <FiShoppingCart />
                   {cartCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-semibold">
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-semibold mt-1">
                       {cartCount}
                     </span>
                   )}
                 </Link>
 
-                <div ref={bellRefDesktop} className="relative flex items-center">
+                <div ref={bellRefDesktop} className="relative flex items-center pt-2">
                   <button
                     onClick={() => setIsPopupOpenDesktop((prev) => !prev)}
                     className="text-primary-700 text-2xl hover:opacity-70"
@@ -188,7 +188,7 @@ export default function Navbar() {
                   </button>
 
                   {notifications.length > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-semibold">
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-semibold mt-1">
                       {notifications.length}
                     </span>
                   )}
@@ -217,10 +217,10 @@ export default function Navbar() {
           </div>
 
           {/* MOBILE RIGHT SECTION */}
-          <div className="flex sm:hidden items-center gap-2 shrink-0">
+          <div className="flex sm:hidden items-center gap-4 shrink-0">
             {isLoggedIn ? (
               <>
-                <Link to="/cart" className="relative text-primary-700 text-xl flex items-center p-1">
+                <Link to="/cart" className="relative text-primary-700 text-xl flex items-center p-1 mt-2">
                   <FiShoppingCart />
                   {cartCount > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 bg-red-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-semibold">
@@ -233,12 +233,12 @@ export default function Navbar() {
                 <div ref={bellRefMobile} className="relative flex items-center">
                   <button
                     onClick={() => setIsPopupOpenMobile((prev) => !prev)}
-                    className="text-primary-700 text-xl flex items-center p-1"
+                    className="text-primary-700 text-xl flex items-center p-1 mt-2"
                   >
                     <FiBell />
                   </button>
                   {notifications.length > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 bg-red-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-semibold">
+                    <span className="absolute -top-0.5 -right-0.5 bg-red-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-semibold mt-2">
                       {notifications.length}
                     </span>
                   )}
