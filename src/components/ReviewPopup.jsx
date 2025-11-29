@@ -8,7 +8,7 @@ export default function ReviewPopup({ onCancel, onSubmit }) {
   const [reviewText, setReviewText] = useState("");
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-[999]">
+    <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-999">
       <div className="bg-white w-full max-w-md rounded-t-2xl md:rounded-2xl shadow-lg p-6">
         {/* Judul */}
         <h2 className="text-xl font-semibold text-gray-900 mb-4 text-center">
