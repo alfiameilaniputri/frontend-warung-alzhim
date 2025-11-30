@@ -156,7 +156,7 @@ export default function OrderCard({ data, onDetailClick, onOpenReview }) {
               }`}
             >
               {/* Foto */}
-              <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-md overflow-hidden bg-gray-100 shrink-0">
                 {it.image ? (
                   <img
                     src={it.image}
