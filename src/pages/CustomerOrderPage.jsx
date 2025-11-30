@@ -74,7 +74,7 @@ export default function CustomerOrderPage() {
       status: "unpaid",
       statusText: "Belum Bayar",
       orderDate: "26 Nov 2025",
-      transaction: "TXN-123456",
+      transaction: "TXN-123457",
 
       items: [
         {
@@ -82,7 +82,7 @@ export default function CustomerOrderPage() {
           quantity: 5,
           price: 4000,
           image: `https://picsum.photos/300/300?random=${Math.floor(
-            Math.random() * 1000,
+            Math.random() * 1000
           )}`,
         },
         {
@@ -146,7 +146,7 @@ export default function CustomerOrderPage() {
     // =======================
     {
       id: "ORD-005",
-      status: "delivery",
+      status: "sent",
       statusText: "Dikirim",
       orderDate: "25 Nov 2025",
 
@@ -172,33 +172,10 @@ export default function CustomerOrderPage() {
       total: 67000 + 2 * 14000,
     },
 
-    // =======================
-    // 4. SELESAI
-    // =======================
     {
-      id: "ORD-006",
-      status: "completed",
-      statusText: "Selesai",
-      orderDate: "25 Nov 2025",
-
-      items: [
-        {
-          name: "Minyak Goreng 1L",
-          quantity: 2,
-          price: 13000,
-          image: `https://picsum.photos/300/300?random=${Math.floor(
-            Math.random() * 1000
-          )}`,
-        },
-      ],
-
-      total: 2 * 13000,
-    },
-
-    {
-      id: "ORD-007",
-      status: "completed",
-      statusText: "Selesai",
+      id: "ORD-008",
+      status: "sent",
+      statusText: "Dikirim",
       orderDate: "24 Nov 2025",
 
       items: [
@@ -223,11 +200,40 @@ export default function CustomerOrderPage() {
       total: 22000 + 21000,
     },
 
+    // =======================
+    // 4. SELESAI
+    // =======================
+    {
+      id: "ORD-006",
+      status: "completed",
+      statusText: "Selesai",
+      orderDate: "25 Nov 2025",
+      reviewGiven: true,
+      review: {
+        rating: 5,
+        reviewText:
+          "Produknya sangat bagus dan pengirimannya cepat! Kemasan rapi dan aman. Pasti akan order lagi. Terima kasih!",
+        reviewDate: "26 Nov 2025",
+      },
+      items: [
+        {
+          name: "Minyak Goreng 1L",
+          quantity: 2,
+          price: 13000,
+          image: `https://picsum.photos/300/300?random=${Math.floor(
+            Math.random() * 1000
+          )}`,
+        },
+      ],
+      total: 2 * 13000,
+    },
+
     {
       id: "ORD-007",
-      status: "sent",
-      statusText: "Dikirim",
+      status: "completed",
+      statusText: "Selesai",
       orderDate: "24 Nov 2025",
+      reviewGiven: false, // BELUM DIULAS - tampil tombol "Berikan Ulasan"
 
       items: [
         {
@@ -255,7 +261,7 @@ export default function CustomerOrderPage() {
   const dummyProfile = {
     fullName: "Rina Putri",
     phone: "0812-3456-7890",
-    address: "Jl. Melati No. 21, Sukamaju, Bekasi",
+    address: "Blok A12, Bintang Alam",
   };
 
   const filteredOrders = dummyOrders.filter((o) => o.status === activeTab);

@@ -84,26 +84,36 @@ export default function OrderCard({ data, onDetailClick, onOpenReview }) {
     </Button>
   );
 
-  const renderActionButton = () => {
-    if (statusKey === "belum bayar" || statusKey === "unpaid")
-      return BayarSekarangButton;
-    if (statusKey === "dibayar" || statusKey === "paid")
-      return MenungguPengirimanButton;
-    if (statusKey === "dikirim" || statusKey === "sent")
-      return PesananDiterimaButton;
-    if ((statusKey === "selesai" || statusKey === "completed") && !sudahUlas)
-      return (
-        <Button
-          variant="primary"
-          size="sm"
-          className="px-3 py-1.5 text-xs md:text-sm rounded-lg whitespace-nowrap bg-emerald-600 text-white w-full md:w-auto"
-          onClick={() => onOpenReview?.(data)}
-        >
-          Berikan Ulasan
-        </Button>
-      );
-    return null;
-  };
+ const renderActionButton = () => {
+  if (statusKey === "belum bayar" || statusKey === "unpaid")
+    return BayarSekarangButton;
+  if (statusKey === "dibayar" || statusKey === "paid")
+    return MenungguPengirimanButton;
+  if (statusKey === "dikirim" || statusKey === "sent")
+    return PesananDiterimaButton;
+  
+  // Selesai
+  if (statusKey === "selesai" || statusKey === "completed") {
+    // Jika sudah diulas, tidak tampilkan tombol action
+    if (sudahUlas) {
+      return null;
+    }
+    
+    // Jika belum diulas, tampilkan tombol Berikan Ulasan
+    return (
+      <Button
+        variant="primary"
+        size="sm"
+        className="px-3 py-1.5 text-xs md:text-sm rounded-lg whitespace-nowrap bg-emerald-600 text-white w-full md:w-auto"
+        onClick={() => onOpenReview?.(data)}
+      >
+        Berikan Ulasan
+      </Button>
+    );
+  }
+  
+  return null;
+};
 
   const getStatusStyle = (s) => {
     switch ((s || "").toLowerCase()) {

@@ -18,37 +18,86 @@ export default function HomePage() {
 
   // Data produk terbaru pakai gambar random
   const newProducts = [
+    // === MAKANAN ===
     {
-      id: 1, // tambahkan id
-      image: "https://picsum.photos/seed/prod1/200/200",
+      id: 1,
+      image: `https://picsum.photos/seed/noodle1/200/200`,
       name: "Indomie Goreng Original",
       price: "3.500",
       rating: 50,
       stock: 50,
+      category: "Makanan",
     },
     {
       id: 2,
-      image: "https://picsum.photos/seed/prod2/200/200",
-      name: "Indomie Goreng Rendang",
-      price: "3.500",
-      rating: 42,
-      stock: 30,
-    },
-    {
-      id: 3,
-      image: "https://picsum.photos/seed/prod3/200/200",
-      name: "Indomie Ayam Bawang",
+      image: `https://picsum.photos/seed/noodle2/200/200`,
+      name: "Mie Sedaap Kari Spesial",
       price: "3.200",
       rating: 60,
       stock: 40,
+      category: "Makanan",
+    },
+
+    // === MINUMAN ===
+    {
+      id: 3,
+      image: `https://picsum.photos/seed/drink1/200/200`,
+      name: "Teh Botol Sosro 500ml",
+      price: "5.000",
+      rating: 75,
+      stock: 100,
+      category: "Minuman",
     },
     {
       id: 4,
-      image: "https://picsum.photos/seed/prod4/200/200",
-      name: "Indomie Kari Ayam",
-      price: "3.200",
-      rating: 45,
-      stock: 55,
+      image: `https://picsum.photos/seed/drink2/200/200`,
+      name: "Susu Ultra Milk Coklat 250ml",
+      price: "7.500",
+      rating: 58,
+      stock: 45,
+      category: "Minuman",
+    },
+
+    // === BUMBU DAPUR ===
+    {
+      id: 5,
+      image: `https://picsum.photos/seed/sauce1/200/200`,
+      name: "Kecap Bango 220ml",
+      price: "15.000",
+      rating: 68,
+      stock: 40,
+      category: "Lainnya",
+    },
+    {
+      id: 6,
+      image: `https://picsum.photos/seed/oil1/200/200`,
+      name: "Minyak Goreng Tropical 1L",
+      price: "18.000",
+      rating: 62,
+      stock: 50,
+      category: "Lainnya",
+    },
+
+    // === MAKANAN ===
+    {
+      id: 7,
+      image: `https://picsum.photos/seed/snack1/200/200`,
+      name: "Chitato Rasa Sapi Panggang",
+      price: "10.500",
+      rating: 70,
+      stock: 60,
+      category: "Makanan",
+    },
+
+    // === SEMBAKO ===
+    {
+      id: 8,
+      image: `https://picsum.photos/seed/rice1/200/200`,
+      name: "Beras Premium 5kg",
+      price: "75.000",
+      rating: 66,
+      stock: 25,
+      category: "Sembako",
     },
   ];
 
@@ -151,7 +200,7 @@ export default function HomePage() {
           <h2 className="text-lg font-bold text-neutral-900">Produk Terbaru</h2>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6 lg:gap-16">
           {newProducts.map((p, i) => (
             <ProductCard
               key={i}

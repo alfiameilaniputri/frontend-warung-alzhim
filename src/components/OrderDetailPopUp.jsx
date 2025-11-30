@@ -16,10 +16,12 @@ export default function OrderDetailPopup({ isOpen, onClose, orderData }) {
   const shippingCost = 0;
   const total = subtotal + shippingCost;
 
+  // Cek apakah sudah diberi ulasan
+  const sudahUlas = orderData.reviewGiven === true;
+
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-md max-h-[90vh] rounded-xl overflow-y-auto shadow-xl">
-
 
         {/* HEADER */}
         <div className="px-5 py-4 text-white" style={{ background: headerColor }}>
@@ -63,6 +65,52 @@ export default function OrderDetailPopup({ isOpen, onClose, orderData }) {
               </div>
             ))}
           </div>
+
+          {/* Ulasan (jika sudah diberi ulasan) */}
+          {sudahUlas && orderData.review && (
+            <div className="mt-5 pt-4 border-t">
+              <p className="text-xs font-semibold text-gray-500 tracking-wide mb-3">
+                Ulasan Anda
+              </p>
+              
+              {/* Rating bintang */}
+              <div className="flex items-center gap-2 mb-2">
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <span
+                      key={star}
+                      className={`text-lg ${
+                        star <= (orderData.review.rating || 0)
+                          ? "text-yellow-400"
+                          : "text-gray-300"
+                      }`}
+                    >
+                      ★
+                    </span>
+                  ))}
+                </div>
+                <span className="text-sm font-semibold text-gray-700">
+                  {orderData.review.rating}/5
+                </span>
+              </div>
+
+              {/* Teks ulasan */}
+              {orderData.review.reviewText && (
+                <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    {orderData.review.reviewText}
+                  </p>
+                </div>
+              )}
+
+              {/* Tanggal ulasan */}
+              {orderData.review.reviewDate && (
+                <p className="text-xs text-gray-500 mt-2">
+                  Diulas pada {orderData.review.reviewDate}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Harga */}
           <div className="mt-5 space-y-2 text-[13px]">
