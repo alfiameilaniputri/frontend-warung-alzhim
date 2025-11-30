@@ -277,13 +277,17 @@ export default function OrderOnlinePage() {
                     <span className="wrap-break-words">{pesanan.alamat}</span>
                   </div>
                 </div>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  className="w-full md:w-auto text-xs md:text-xs lg:text-xs py-1.5"
-                >
-                  Kirim Pesanan
-                </Button>
+
+                {/* Button HANYA muncul kalau status Dibayar */}
+                {pesanan.status === "Dibayar" && (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="w-full md:w-auto text-xs md:text-xs lg:text-xs py-1.5"
+                  >
+                    Kirim Pesanan
+                  </Button>
+                )}
               </div>
 
               {/* Payment & Status */}
