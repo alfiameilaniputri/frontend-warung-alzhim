@@ -25,7 +25,6 @@ import ManageProducts from "../pages/seller/ManageProducts";
 // Pages auth
 import Register from "../pages/Register";
 
-
 const router = createBrowserRouter([
   // ===================== CUSTOMER =====================
   {
@@ -65,8 +64,8 @@ const router = createBrowserRouter([
       { index: true, element: <SalesReportPage /> },
       { path: "sales-report", element: <SalesReportPage /> },
       { path: "order-online", element: <OrderOnlinePage /> },
-       { path: "transaction-offline", element: <OfflineTransactionPage /> },
-       { path: "manage-products", element: <ManageProducts /> },
+      { path: "transaction-offline", element: <OfflineTransactionPage /> },
+      { path: "manage-products", element: <ManageProducts /> },
     ],
   },
 
@@ -74,7 +73,7 @@ const router = createBrowserRouter([
   {
     path: "*",
     element: <NotFound />,
-  }
+  },
 ]);
 
 export default router;
