@@ -3,9 +3,11 @@ import { Link } from "react-router-dom";
 import CategoryCard from "../components/CategoryCard";
 import ProductCard from "../components/ProductCard";
 import useProductStore from "../stores/useProductStore";
+import useAuthStore from "../stores/useAuthStore";
 
 export default function HomePage() {
   const { products, fetchProducts, loading, error } = useProductStore();
+  const {  fetchStatusStore, statusStore } = useAuthStore();
   const [selectedCategory, setSelectedCategory] = useState("Semua");
 
   const API_URL = import.meta.env.VITE_API_URL;
@@ -13,6 +15,10 @@ export default function HomePage() {
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
+
+  useEffect(() => {
+    fetchStatusStore();
+  }, [fetchStatusStore]);
 
   const categories = [
     { image: "/semua.png", label: "Semua" },
@@ -69,6 +75,13 @@ export default function HomePage() {
           }
         />
       </div>
+
+      {statusStore?.isActive === false && (
+  <div className="p-4 bg-red-100 border border-red-300 text-red-700 rounded-lg">
+    <h2 className="font-semibold">Toko Sedang Tutup</h2>
+    <p>Saat ini penjual menonaktifkan warung, transaksi tidak dapat dilakukan.</p>
+  </div>
+)}
 
       {/* ==================== PRODUK TERLARIS ==================== */}
       <div className="w-full mt-6 px-2 lg:gap-6">

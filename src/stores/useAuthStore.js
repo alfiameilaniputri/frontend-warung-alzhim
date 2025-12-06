@@ -9,6 +9,7 @@ const useAuthStore = create((set, get) => ({
   loading: false,
   error: null,
   profile: null,
+  statusStore: null,
 
   register: async (formData) => {
     set({ loading: true, error: null });
@@ -54,20 +55,20 @@ const useAuthStore = create((set, get) => ({
         email,
         password,
       });
-      
+
       if (res.data.success) {
         const { token, user } = res.data.data;
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
         set({ user, token, loading: false });
-        
+
         return {
           success: true,
           data: res.data.data,
         };
       } else {
         set({ error: res.data.message, loading: false });
-        
+
         return {
           success: false,
           status_code: res.data.status_code,
@@ -80,7 +81,7 @@ const useAuthStore = create((set, get) => ({
         error: err.response?.data?.message || err.message,
         loading: false,
       });
-      
+
       const errorData = err.response?.data || {};
       return {
         success: false,
@@ -200,22 +201,29 @@ const useAuthStore = create((set, get) => ({
       if (response.data.success && response.data.message) {
         alert(response.data.message);
       }
-
     } catch (err) {
       console.error("Gagal toggle:", err.response?.data || err.message);
-      
+
       // ✅ Tampilkan alert error dari backend
-      const errorMessage = 
-        err.response?.data?.errors?.order ||  // "Masih ada pesanan yang belum dikirim"
-        err.response?.data?.message ||         // Message lainnya
+      const errorMessage =
+        err.response?.data?.errors?.order || // "Masih ada pesanan yang belum dikirim"
+        err.response?.data?.message || // Message lainnya
         "Gagal mengubah status warung";
-      
+
       alert(errorMessage);
-      
+
       set({ error: err.response?.data?.message || err.message });
     }
-  }
+  },
 
+  fetchStatusStore: async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/auth/store-status`);
+      set({ statusStore: response.data.data });
+    } catch (err) {
+      console.error("Gagal ambil profil:", err.response?.data || err.message);
+    }
+  },
 }));
 
 export default useAuthStore;
