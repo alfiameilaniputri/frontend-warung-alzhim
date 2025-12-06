@@ -1,37 +1,49 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Button from "../../components/Button";
+import useOrderStore from "../../stores/useOrderStore";
+import useProductStore from "../../stores/useProductStore";
 
 export default function OfflineTransactionPage() {
-  const [cart, setCart] = useState([
-    { id: 1, name: "Gula Pasir 1/4 Kg", price: 5000, qty: 2 },
-    { id: 2, name: "Beras 1 Liter", price: 12000, qty: 1 },
-  ]);
+  const [cart, setCart] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPayment, setSelectedPayment] = useState("tunai");
-  const [paymentAmount, setPaymentAmount] = useState("50000");
+  const [paymentAmount, setPaymentAmount] = useState("");
 
-  const products = [
-    { id: 1, name: "Aqua 600 ml", price: 4000 },
-    { id: 2, name: "Indomie Goreng", price: 3500 },
-    { id: 3, name: "Indomie Ayam Bawang", price: 3500 },
-    { id: 4, name: "Telur Ayam 1 Butir", price: 2500 },
-    { id: 5, name: "Gula Pasir 1/4 Kg", price: 5000 },
-    { id: 6, name: "Minyak Goreng 1 Liter", price: 15000 },
-    { id: 7, name: "Kopi Kapal Api Sachet", price: 1500 },
-    { id: 8, name: "Teh Pucuk 350 ml", price: 4000 },
-    { id: 9, name: "Susu UHT 200 ml", price: 6000 },
-    { id: 10, name: "Beras 1 Liter", price: 12000 },
-    { id: 11, name: "Sabun Mandi Lifebuoy", price: 3500 },
-    { id: 12, name: "Pepsodent 75gr", price: 8000 },
-    { id: 13, name: "Shampoo Sachet Sunsilk", price: 1000 },
-    { id: 14, name: "Rokok Surya 12", price: 27000 },
-    { id: 15, name: "Rokok Sampurna Mild 12", price: 26000 },
-    { id: 16, name: "Chitato 68 gr", price: 9000 },
-    { id: 17, name: "Malkist Crackers", price: 5000 },
-    { id: 18, name: "Sosis Kanzler Singles", price: 8000 },
-    { id: 19, name: "Tepung Terigu 1/2 Kg", price: 7000 },
-    { id: 20, name: "Garam Dapur 250gr", price: 3000 },
-  ];
+  const { offlineOrders, createOfflineOrder, loading, error, fetchOfflineOrders } = useOrderStore();
+  const { products, fetchProducts } = useProductStore();
+
+  useEffect(() => {
+    fetchOfflineOrders();
+  }, [fetchOfflineOrders]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  console.log("offline order", offlineOrders.length)
+
+  // const products = [
+  //   { id: 1, name: "Aqua 600 ml", price: 4000 },
+  //   { id: 2, name: "Indomie Goreng", price: 3500 },
+  //   { id: 3, name: "Indomie Ayam Bawang", price: 3500 },
+  //   { id: 4, name: "Telur Ayam 1 Butir", price: 2500 },
+  //   { id: 5, name: "Gula Pasir 1/4 Kg", price: 5000 },
+  //   { id: 6, name: "Minyak Goreng 1 Liter", price: 15000 },
+  //   { id: 7, name: "Kopi Kapal Api Sachet", price: 1500 },
+  //   { id: 8, name: "Teh Pucuk 350 ml", price: 4000 },
+  //   { id: 9, name: "Susu UHT 200 ml", price: 6000 },
+  //   { id: 10, name: "Beras 1 Liter", price: 12000 },
+  //   { id: 11, name: "Sabun Mandi Lifebuoy", price: 3500 },
+  //   { id: 12, name: "Pepsodent 75gr", price: 8000 },
+  //   { id: 13, name: "Shampoo Sachet Sunsilk", price: 1000 },
+  //   { id: 14, name: "Rokok Surya 12", price: 27000 },
+  //   { id: 15, name: "Rokok Sampurna Mild 12", price: 26000 },
+  //   { id: 16, name: "Chitato 68 gr", price: 9000 },
+  //   { id: 17, name: "Malkist Crackers", price: 5000 },
+  //   { id: 18, name: "Sosis Kanzler Singles", price: 8000 },
+  //   { id: 19, name: "Tepung Terigu 1/2 Kg", price: 7000 },
+  //   { id: 20, name: "Garam Dapur 250gr", price: 3000 },
+  // ];
 
   const addToCart = (product) => {
     const existingItem = cart.find((item) => item.name === product.name);
@@ -66,11 +78,13 @@ export default function OfflineTransactionPage() {
 
   const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
 
+  console.log(cart)
+
   const payment = parseFloat(paymentAmount.replace(/\./g, "")) || 0;
   const change = payment - total;
   const canProcess = payment >= total && total > 0;
 
-  const processTransaction = () => {
+  const processTransaction = async () => {
     if (cart.length === 0) {
       alert("Keranjang masih kosong!");
       return;
@@ -79,16 +93,24 @@ export default function OfflineTransactionPage() {
       alert("Jumlah bayar kurang!");
       return;
     }
-    alert(
-      `Transaksi berhasil!
 
-Total: Rp ${total.toLocaleString("id-ID")}
-Bayar: Rp ${payment.toLocaleString("id-ID")}
-Kembalian: Rp ${change.toLocaleString("id-ID")}`
-    );
+    const payload = {
+      items: cart.map((item) => ({
+        productId: item._id,
+        qty: Number(item.qty),
+      })),
+      paymentMethod: selectedPayment,
+    };
 
-    setCart([]);
-    setPaymentAmount("");
+    // Kirim langsung ke store
+    console.log(payload)
+    const response = await createOfflineOrder(payload);
+    // const response = payload;
+
+    if (response) {
+      alert("Transaksi berhasil dibuat!");
+      console.log("Order Response:", response);
+    }
   };
 
   const filteredProducts = products.filter((product) =>
@@ -140,7 +162,7 @@ Kembalian: Rp ${change.toLocaleString("id-ID")}`
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {filteredProducts.map((product, index) => (
                   <button
-                    key={index}
+                    key={product._id}
                     onClick={() => addToCart(product)}
                     className="w-full flex justify-between items-center py-3 px-4 rounded-lg border-2 border-neutral-300 bg-white hover:border-primary-500 hover:bg-primary-50 transition group"
                     title={product.name} // Tooltip native browser
@@ -156,7 +178,7 @@ Kembalian: Rp ${change.toLocaleString("id-ID")}`
               </div>
             </div>
           </div>
-          
+
           {/* KERANJANG */}
           <div className="bg-white rounded-xl border border-neutral-200 shadow-sm p-4 h-fit lg:sticky lg:top-4">
             <h2 className="text-lg font-bold text-neutral-900 mb-3">
@@ -247,11 +269,10 @@ Kembalian: Rp ${change.toLocaleString("id-ID")}`
                   <button
                     key={method.id}
                     onClick={() => setSelectedPayment(method.id)}
-                    className={`py-2 px-3 rounded-lg text-xs font-semibold transition ${
-                      selectedPayment === method.id
-                        ? "bg-primary-500 text-white"
-                        : "border border-neutral-300 bg-white"
-                    }`}
+                    className={`py-2 px-3 rounded-lg text-xs font-semibold transition ${selectedPayment === method.id
+                      ? "bg-primary-500 text-white"
+                      : "border border-neutral-300 bg-white"
+                      }`}
                   >
                     {method.label}
                   </button>

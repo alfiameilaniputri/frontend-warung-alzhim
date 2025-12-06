@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import useAuthStore from "../stores/useAuthStore";
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -11,6 +12,9 @@ export default function RegisterPage() {
     alamat: ""
   });
 
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
@@ -20,8 +24,28 @@ export default function RegisterPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleDaftar = () => {
-    console.log("Mendaftar dengan data:", formData);
+  const register = useAuthStore(state => state.register);
+
+  const handleDaftar = async () => {
+    setLoading(true);
+    setErrorMsg("");
+
+    // Validasi sederhana
+    if (!formData.nama || !formData.email || !formData.password || !formData.alamat) {
+      setErrorMsg("Semua field yang bertanda * wajib diisi.");
+      setLoading(false);
+      return;
+    }
+
+    const success = await register(formData);
+    setLoading(false);
+
+    if (success) {
+      alert("Registrasi berhasil! Silakan login.");
+      window.location.href = "/login"; // redirect ke halaman login
+    } else {
+      setErrorMsg(useAuthStore.getState().error || "Gagal mendaftar");
+    }
   };
 
   return (
@@ -46,9 +70,13 @@ export default function RegisterPage() {
             WARUNG ALZHIM
           </h1>
 
-          <p className="text-neutral-800 text-sm leading-snug">
+          <p className="text-neutral-800 text-sm leading-snug text-center">
             <span className="text-primary-500 font-semibold">Daftar</span> dan belanja kebutuhan sehari-hari dengan mudah
           </p>
+
+          {errorMsg && (
+            <p className="text-red-500 text-xs mt-2 text-center">{errorMsg}</p>
+          )}
         </div>
 
         {/* FORM */}
@@ -56,7 +84,7 @@ export default function RegisterPage() {
 
           {/* Nama */}
           <div>
-            <label className="block mb-1 font-semibold text-gray-800 text-xs">Nama</label>
+            <label className="block mb-1 font-semibold text-gray-800 text-xs">Nama *</label>
             <input
               type="text"
               name="nama"
@@ -82,7 +110,7 @@ export default function RegisterPage() {
 
           {/* Email */}
           <div>
-            <label className="block mb-1 font-semibold text-gray-800 text-xs">Email</label>
+            <label className="block mb-1 font-semibold text-gray-800 text-xs">Email *</label>
             <input
               type="email"
               name="email"
@@ -95,7 +123,7 @@ export default function RegisterPage() {
 
           {/* Password */}
           <div>
-            <label className="block mb-1 font-semibold text-gray-800 text-xs">Kata sandi</label>
+            <label className="block mb-1 font-semibold text-gray-800 text-xs">Kata Sandi *</label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -121,7 +149,7 @@ export default function RegisterPage() {
 
           {/* Alamat */}
           <div>
-            <label className="block mb-1 font-semibold text-gray-800 text-xs">Alamat Lengkap</label>
+            <label className="block mb-1 font-semibold text-gray-800 text-xs">Alamat Lengkap *</label>
             <input
               type="text"
               name="alamat"
@@ -135,9 +163,10 @@ export default function RegisterPage() {
           {/* BUTTON */}
           <button
             onClick={handleDaftar}
-            className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded-lg transition duration-200 mt-1 text-sm"
+            disabled={loading}
+            className={`w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded-lg transition duration-200 mt-1 text-sm ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
           >
-            Daftar
+            {loading ? "Mendaftar..." : "Daftar"}
           </button>
 
           {/* Login Link */}

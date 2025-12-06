@@ -1,13 +1,326 @@
+// import React from "react";
+// import Button from "./Button";
+
+// export default function OrderDetailPopup({ isOpen, onClose, orderData }) {
+//   const API_URL = import.meta.env.VITE_API_URL;
+//   if (!isOpen || !orderData) return null;
+
+//   const badge = getStatusBadge(orderData.statusText);
+//   const headerColor = "#2ECC71";
+
+//   // Parse items dari orderData
+//   let items = [];
+//   if (Array.isArray(orderData.items)) {
+//     items = orderData.items.map((it) => ({
+//       id: it._id ?? "",
+//       name: it.product?.name ?? "",
+//       image: it.product?.images?.[0] ?? "",
+//       quantity: it.quantity ?? 0,
+//       price: it.product?.price ?? 0,
+//       isReviewed: it.isReviewed ?? false,
+//       review: it.review ?? null, // Review per item
+//     }));
+//   }
+
+//   const subtotal = items.reduce(
+//     (acc, item) => acc + item.quantity * item.price,
+//     0
+//   );
+//   const shippingCost = 0;
+//   const total = subtotal + shippingCost;
+
+//   return (
+//     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+//       <div className="bg-white w-full max-w-md max-h-[90vh] rounded-xl overflow-y-auto shadow-xl">
+
+//         {/* HEADER */}
+//         <div className="px-5 py-4 text-white" style={{ background: headerColor }}>
+//           <p className="text-xs opacity-80">Order ID</p>
+//           <p className="text-xl font-bold">#{orderData._id}</p>
+//           <p className="text-xs opacity-80 mt-1">
+//             {new Date(orderData.createdAt).toLocaleDateString("id-ID", {
+//               day: "numeric",
+//               month: "long",
+//               year: "numeric",
+//             })}
+//           </p>
+//         </div>
+
+//         {/* BODY */}
+//         <div className="px-5 py-4">
+
+//           {/* Status */}
+//           <p className="text-[13px] font-semibold text-gray-500 mb-1">Status</p>
+//           <p className="font-semibold text-gray-900 mb-3">{orderData.statusText}</p>
+
+//           <div className="border-b mb-4"></div>
+
+//           {/* Badge */}
+//           <div
+//             className={`${badge.bg} ${badge.border} ${badge.textColor} border rounded-lg p-3 mb-4 flex gap-2 text-sm`}
+//           >
+//             <span className="text-lg">{badge.icon}</span>
+//             <p>{badge.text}</p>
+//           </div>
+
+//           {/* Produk list */}
+//           <div className="space-y-4">
+//             {items.map((item, index) => (
+//               <div key={index}>
+//                 {/* Item produk */}
+//                 <div className="flex gap-3 items-start pb-3">
+//                   <img
+//                     src={item.image ? `${API_URL}/public/products/${item.image}` : ""}
+//                     alt={item.name}
+//                     className="w-14 h-14 rounded-md object-cover border"
+//                   />
+//                   <div className="flex-1">
+//                     <p className="font-semibold text-sm text-gray-900">{item.name}</p>
+//                     <p className="text-xs text-gray-600">
+//                       {item.quantity}x Rp {item.price.toLocaleString("id-ID")}
+//                     </p>
+//                   </div>
+//                 </div>
+
+//                 {/* Review per item (jika sudah diberi ulasan) */}
+//                 {item.isReviewed && item.review && (
+//                   <div className="ml-0 mb-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+//                     <p className="text-[11px] font-semibold text-gray-500 mb-2">
+//                       Ulasan Anda
+//                     </p>
+
+//                     {/* Rating bintang */}
+//                     <div className="flex items-center gap-2 mb-2">
+//                       <div className="flex gap-0.5">
+//                         {[1, 2, 3, 4, 5].map((star) => (
+//                           <span
+//                             key={star}
+//                             className={`text-base ${
+//                               star <= (item.review.rating || 0)
+//                                 ? "text-yellow-400"
+//                                 : "text-gray-300"
+//                             }`}
+//                           >
+//                             ★
+//                           </span>
+//                         ))}
+//                       </div>
+//                       <span className="text-xs font-semibold text-gray-700">
+//                         {item.review.rating}/5
+//                       </span>
+//                     </div>
+
+//                     {/* Teks ulasan */}
+//                     {item.review.comment && (
+//                       <p className="text-xs text-gray-700 leading-relaxed mb-1">
+//                         "{item.review.comment}"
+//                       </p>
+//                     )}
+
+//                     {/* Tanggal ulasan */}
+//                     {item.review.createdAt && (
+//                       <p className="text-[10px] text-gray-500">
+//                         Diulas pada{" "}
+//                         {new Date(item.review.createdAt).toLocaleDateString("id-ID", {
+//                           day: "numeric",
+//                           month: "long",
+//                           year: "numeric",
+//                         })}
+//                       </p>
+//                     )}
+//                   </div>
+//                 )}
+
+//                 {/* Border pemisah antar item */}
+//                 {index !== items.length - 1 && (
+//                   <div className="border-b border-gray-200 mb-3"></div>
+//                 )}
+//               </div>
+//             ))}
+//           </div>
+
+//           {/* Harga */}
+//           <div className="mt-5 pt-4 border-t space-y-2 text-[13px]">
+//             <div className="flex justify-between">
+//               <p className="text-gray-700">Produk</p>
+//               <p className="font-medium">Rp {subtotal.toLocaleString("id-ID")}</p>
+//             </div>
+
+//             <div className="flex justify-between pb-3 border-b">
+//               <p className="text-gray-700">Ongkir</p>
+//               <p className="font-medium">Rp {shippingCost.toLocaleString("id-ID")}</p>
+//             </div>
+
+//             <div className="flex justify-between pt-2">
+//               <p className="font-semibold text-gray-900">Total</p>
+//               <p className="font-bold text-lg text-emerald-600">
+//                 Rp {total.toLocaleString("id-ID")}
+//               </p>
+//             </div>
+//           </div>
+
+//           {/* Alamat */}
+//           <div className="pt-4 mt-4 border-t">
+//             <p className="text-xs font-semibold text-gray-500 tracking-wide mb-2">
+//               Alamat Pengiriman
+//             </p>
+
+//             <p className="text-[11px] text-gray-500 mb-1">Penerima</p>
+
+//             <p className="font-semibold text-sm text-gray-900">
+//               {orderData.shippingAddress?.fullName || orderData.fullName || "-"} / {orderData.shippingAddress?.phone || orderData.phone || "-"}
+//             </p>
+
+//             <p className="text-sm text-gray-600 leading-relaxed mt-1">
+//               {orderData.shippingAddress?.address || orderData.address || "-"}
+//             </p>
+//           </div>
+//         </div>
+
+//         {/* FOOTER */}
+//         <div className="px-5 py-4 bg-gray-50 flex gap-3 border-t">
+//           <Button variant="outline" className="flex-1 py-2 text-sm" onClick={onClose}>
+//             Tutup
+//           </Button>
+
+//           {(orderData.statusText === "Belum Bayar" || orderData.status === "pending") && (
+//             <Button
+//               variant="primary"
+//               className="flex-1 py-2 text-sm"
+//               onClick={() => {
+//                 onClose();
+//                 window.location.href = `/payment/${orderData._id}`;
+//               }}
+//             >
+//               Bayar Sekarang
+//             </Button>
+//           )}
+
+//           {(orderData.statusText === "Dibayar" || orderData.statusText === "Dikirim" ||
+//             orderData.status === "paid" || orderData.status === "shipped") && (
+//             <Button
+//               variant="primary"
+//               className="flex-1 py-2 text-sm"
+//               onClick={() => {
+//                 window.open(`https://wa.me/6281234567890?text=Halo, saya ingin bertanya tentang pesanan ${orderData._id}`, '_blank');
+//               }}
+//             >
+//               Hubungi Penjual
+//             </Button>
+//           )}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+// /* Utility badge function */
+// function getStatusBadge(status) {
+//   switch ((status || "").toLowerCase()) {
+//     case "belum bayar":
+//     case "pending":
+//       return {
+//         bg: "bg-[#FFF3CD]",
+//         border: "border-[#FFECB5]",
+//         textColor: "text-[#856404]",
+//         icon: "⏰",
+//         text: "Bayar pesanan sebelum pukul 17.00 hari ini",
+//       };
+
+//     case "dibayar":
+//     case "paid":
+//       return {
+//         bg: "bg-blue-50",
+//         border: "border-blue-200",
+//         textColor: "text-blue-700",
+//         icon: "ℹ️",
+//         text: "Pesanan sudah dibayar dan akan segera dikirim oleh penjual",
+//       };
+
+//     case "dikirim":
+//     case "shipped":
+//     case "delivered":
+//       return {
+//         bg: "bg-blue-50",
+//         border: "border-blue-200",
+//         textColor: "text-blue-700",
+//         icon: "📦",
+//         text: "Paket sedang dalam perjalanan menuju alamat anda",
+//       };
+
+//     case "selesai":
+//     case "completed":
+//       return {
+//         bg: "bg-green-50",
+//         border: "border-green-200",
+//         textColor: "text-green-700",
+//         icon: "✅",
+//         text: "Pesanan telah selesai. Terimakasih sudah berbelanja!",
+//       };
+
+//     default:
+//       return {
+//         bg: "bg-gray-50",
+//         border: "border-gray-200",
+//         textColor: "text-gray-700",
+//         icon: "ℹ️",
+//         text: "Status pesanan",
+//       };
+//   }
+// }
 import React from "react";
 import Button from "./Button";
 
-export default function OrderDetailPopup({ isOpen, onClose, orderData }) {
-  if (!isOpen || !orderData) return null;
+export default function OrderDetailPopup({
+  isOpen,
+  onClose,
+  orderData,
+  isLoading,
+}) {
+  const API_URL = import.meta.env.VITE_API_URL;
 
-  const badge = getStatusBadge(orderData.statusText);
-  const headerColor = "#2ECC71";
+  if (!isOpen) return null;
 
-  let items = Array.isArray(orderData.items) ? orderData.items : [];
+  // Show loading state
+  if (isLoading || !orderData) {
+    return (
+      <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div className="bg-white w-full max-w-md rounded-xl p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Memuat detail pesanan...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Mapping status ke text Indonesia
+  const statusTextMap = {
+    pending: "Belum Bayar",
+    paid: "Dibayar",
+    delivered: "Dikirim",
+    completed: "Selesai",
+    cancelled: "Dibatalkan",
+    failed: "Gagal"
+  };
+  
+  const statusText = orderData.statusText || statusTextMap[orderData.status] || "Pending";
+  const statusKey = (orderData.status || "").toLowerCase();
+  const badge = getStatusBadge(orderData.status, orderData.createdAt); // ← FIX: Pass createdAt
+  const headerColor = "#10B981";
+
+  // Parse items dari orderData
+  let items = [];
+  if (Array.isArray(orderData.items)) {
+    items = orderData.items.map((it) => ({
+      id: it._id ?? "",
+      name: it.product?.name ?? "",
+      image: it.product?.images?.[0] ?? "",
+      quantity: it.quantity ?? 0,
+      price: it.product?.price ?? 0,
+      isReviewed: it.isReviewed ?? false,
+      review: it.review ?? null,
+    }));
+  }
 
   const subtotal = items.reduce(
     (acc, item) => acc + item.quantity * item.price,
@@ -16,154 +329,217 @@ export default function OrderDetailPopup({ isOpen, onClose, orderData }) {
   const shippingCost = 0;
   const total = subtotal + shippingCost;
 
-  // Cek apakah sudah diberi ulasan
-  const sudahUlas = orderData.reviewGiven === true;
-
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-md max-h-[90vh] rounded-xl overflow-y-auto shadow-xl">
-
         {/* HEADER */}
-        <div className="px-5 py-4 text-white" style={{ background: headerColor }}>
-          <p className="text-xs opacity-80">Order ID</p>
-          <p className="text-xl font-bold">#{orderData.id}</p>
-          <p className="text-xs opacity-80 mt-1">{orderData.orderDate}</p>
+        <div
+          className="px-5 py-4 text-white"
+          style={{ background: headerColor }}
+        >
+          <p className="text-xs opacity-90">Order ID</p>
+          <p className="text-xl font-bold">#{orderData._id}</p>
+          <p className="text-xs opacity-90 mt-1">
+            {orderData.createdAt
+              ? new Date(orderData.createdAt).toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                })
+              : "-"}
+          </p>
         </div>
 
         {/* BODY */}
         <div className="px-5 py-4">
-
           {/* Status */}
-          <p className="text-[13px] font-semibold text-gray-500 mb-1">Status</p>
-          <p className="font-semibold text-gray-900 mb-3">{orderData.statusText}</p>
+          <p className="text-xs font-semibold text-gray-500 mb-1">Status</p>
+          <p className="font-bold text-gray-900 mb-3 text-base">
+            {statusText}
+          </p>
 
           <div className="border-b mb-4"></div>
 
-          {/* Badge */}
-          <div
-            className={`${badge.bg} ${badge.border} ${badge.textColor} border rounded-lg p-3 mb-4 flex gap-2 text-sm`}
-          >
-            <span className="text-lg">{badge.icon}</span>
-            <p>{badge.text}</p>
-          </div>
+          {/* Badge info sesuai status */}
+          {badge && (
+            <div
+              className={`${badge.bg} ${badge.border} ${badge.textColor} border rounded-lg p-3 mb-4 flex gap-2 text-sm items-start`}
+            >
+              <span className="text-lg shrink-0">{badge.icon}</span>
+              <p className="leading-relaxed">{badge.text}</p>
+            </div>
+          )}
 
           {/* Produk list */}
-          <div className="space-y-3">
+          <div className="space-y-4 mb-4">
             {items.map((item, index) => (
-              <div key={index} className="flex gap-3 items-start">
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-14 h-14 rounded-md object-cover border"
-                />
-                <div>
-                  <p className="font-semibold text-sm text-gray-900">{item.name}</p>
-                  <p className="text-xs text-gray-600">
-                    {item.quantity}x Rp {item.price.toLocaleString("id-ID")}
-                  </p>
+              <div key={index}>
+                {/* Item produk */}
+                <div className="flex gap-3 items-start">
+                  <img
+                    src={
+                      item.image
+                        ? `${API_URL}/public/products/${item.image}`
+                        : ""
+                    }
+                    alt={item.name}
+                    className="w-14 h-14 rounded-md object-cover border border-gray-200"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm text-gray-900 leading-tight">
+                      {item.name}
+                    </p>
+                    <p className="text-xs text-gray-600 mt-0.5">
+                      {item.quantity}x Rp {item.price.toLocaleString("id-ID")}
+                    </p>
+                  </div>
                 </div>
+
+                {/* Review per item - HANYA tampil jika sudah direview */}
+                {item.isReviewed && item.review && (
+                  <div className="mt-3 p-3 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-base">⭐</span>
+                      <p className="text-xs font-bold text-gray-700">
+                        Ulasan Anda
+                      </p>
+                    </div>
+
+                    {/* Rating bintang */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="flex gap-0.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span
+                            key={star}
+                            className={`text-lg ${
+                              star <= (item.review.rating || 0)
+                                ? "text-yellow-400"
+                                : "text-gray-300"
+                            }`}
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                      <span className="text-sm font-bold text-gray-800">
+                        {item.review.rating}/5
+                      </span>
+                    </div>
+
+                    {/* Teks ulasan */}
+                    {item.review.comment && (
+                      <p className="text-sm text-gray-700 leading-relaxed mb-2 italic">
+                        "{item.review.comment}"
+                      </p>
+                    )}
+
+                    {/* Tanggal ulasan */}
+                    {item.review.createdAt && (
+                      <p className="text-xs text-gray-500">
+                        📅{" "}
+                        {new Date(item.review.createdAt).toLocaleDateString(
+                          "id-ID",
+                          {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          }
+                        )}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Border pemisah antar item */}
+                {index !== items.length - 1 && (
+                  <div className="border-b border-gray-200 my-4"></div>
+                )}
               </div>
             ))}
           </div>
 
-          {/* Ulasan (jika sudah diberi ulasan) */}
-          {sudahUlas && orderData.review && (
-            <div className="mt-5 pt-4 border-t">
-              <p className="text-xs font-semibold text-gray-500 tracking-wide mb-3">
-                Ulasan Anda
-              </p>
-              
-              {/* Rating bintang */}
-              <div className="flex items-center gap-2 mb-2">
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <span
-                      key={star}
-                      className={`text-lg ${
-                        star <= (orderData.review.rating || 0)
-                          ? "text-yellow-400"
-                          : "text-gray-300"
-                      }`}
-                    >
-                      ★
-                    </span>
-                  ))}
-                </div>
-                <span className="text-sm font-semibold text-gray-700">
-                  {orderData.review.rating}/5
-                </span>
-              </div>
-
-              {/* Teks ulasan */}
-              {orderData.review.reviewText && (
-                <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                  <p className="text-sm text-gray-700 leading-relaxed">
-                    {orderData.review.reviewText}
-                  </p>
-                </div>
-              )}
-
-              {/* Tanggal ulasan */}
-              {orderData.review.reviewDate && (
-                <p className="text-xs text-gray-500 mt-2">
-                  Diulas pada {orderData.review.reviewDate}
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* Harga */}
-          <div className="mt-5 space-y-2 text-[13px]">
+          {/* Ringkasan Harga */}
+          <div className="space-y-2 text-sm pb-4 border-t pt-4">
             <div className="flex justify-between">
               <p className="text-gray-700">Produk</p>
-              <p className="font-medium">Rp {subtotal.toLocaleString("id-ID")}</p>
+              <p className="font-medium text-gray-900">
+                Rp {subtotal.toLocaleString("id-ID")}
+              </p>
             </div>
 
             <div className="flex justify-between pb-3 border-b">
               <p className="text-gray-700">Ongkir</p>
-              <p className="font-medium">Rp {shippingCost.toLocaleString("id-ID")}</p>
+              <p className="font-medium text-gray-900">
+                Rp {shippingCost.toLocaleString("id-ID")}
+              </p>
             </div>
 
-            <div className="flex justify-between pt-2 pb-3 border-b">
-              <p className="font-semibold text-gray-900">Total</p>
+            <div className="flex justify-between pt-2">
+              <p className="font-bold text-gray-900">Total</p>
               <p className="font-bold text-lg text-emerald-600">
                 Rp {total.toLocaleString("id-ID")}
               </p>
             </div>
           </div>
 
-          {/* Alamat */}
-          <div className="pt-4">
-            <p className="text-xs font-semibold text-gray-500 tracking-wide mb-1">
+          {/* Alamat Pengiriman */}
+          <div className="pt-4 border-t">
+            <p className="text-xs font-semibold text-gray-500 mb-2">
               Alamat Pengiriman
             </p>
 
-            <p className="text-[11px] text-gray-500 mb-1">Penerima</p>
+            <p className="text-xs text-gray-500 mb-1">Penerima</p>
 
-            <p className="font-semibold text-sm text-gray-900">
-              {orderData.fullName} / {orderData.phone}
+            <p className="font-bold text-sm text-gray-900">
+              {orderData.buyer?.name || orderData.fullName || "-"} /{" "}
+              {orderData.buyer?.phone || orderData.phone || "-"}
             </p>
 
-            <p className="text-sm text-gray-600 leading-relaxed">
-              {orderData.address}
+            <p className="text-sm text-gray-600 leading-relaxed mt-1">
+              {orderData.buyer?.address || orderData.address || "-"}
             </p>
           </div>
         </div>
 
-        {/* FOOTER */}
-        <div className="px-2 py-4 bg-gray-50 flex gap-3">
-          <Button variant="outline" className="flex-1 py-2 text-sm" onClick={onClose}>
+        {/* FOOTER - Tombol sesuai status */}
+        <div className="px-5 py-4 bg-white border-t flex gap-3">
+          <Button
+            variant="outline"
+            className="flex-1 py-2.5 text-sm font-medium border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-50"
+            onClick={onClose}
+          >
             Tutup
           </Button>
 
-          {orderData.statusText === "Belum Bayar" && (
-            <Button variant="primary" className="flex-1 py-2 text-sm">
+          {/* Belum Bayar - Bayar Sekarang */}
+          {(statusKey === "belum bayar" || statusKey === "pending") && (
+            <Button
+              variant="primary"
+              className="flex-1 py-2.5 text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700"
+              onClick={() => {
+                onClose();
+                window.location.href = `/payment/${orderData._id}`;
+              }}
+            >
               Bayar Sekarang
             </Button>
           )}
 
-          {(orderData.statusText === "Dibayar" || orderData.statusText === "Dikirim") && (
-            <Button variant="primary" className="flex-1 py-2 text-sm">
+          {/* Dibayar / Dikirim - Hubungi Penjual */}
+          {(statusKey === "dibayar" ||
+            statusKey === "paid" ||
+            statusKey === "dikirim" ||
+            statusKey === "shipped") && (
+            <Button
+              variant="primary"
+              className="flex-1 py-2.5 text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700"
+              onClick={() => {
+                window.open(
+                  `https://wa.me/6281234567890?text=Halo, saya ingin bertanya tentang pesanan ${orderData._id}`,
+                  "_blank"
+                );
+              }}
+            >
               Hubungi Penjual
             </Button>
           )}
@@ -174,51 +550,67 @@ export default function OrderDetailPopup({ isOpen, onClose, orderData }) {
 }
 
 /* Utility badge function */
-function getStatusBadge(status) {
-  switch ((status || "").toLowerCase()) {
+function getStatusBadge(status, createdAt) { // ← FIX: Tambah parameter createdAt
+  const statusLower = (status || "").toLowerCase();
+
+  switch (statusLower) {
     case "belum bayar":
+    case "pending":
+      if (createdAt) {
+        const orderDate = new Date(createdAt);
+        const deadline = new Date(orderDate.getTime() + 60 * 60 * 1000);
+        
+        const hours = deadline.getHours().toString().padStart(2, "0");
+        const minutes = deadline.getMinutes().toString().padStart(2, "0");
+
+        return {
+          bg: "bg-orange-50",
+          border: "border-orange-200",
+          textColor: "text-orange-800",
+          icon: "⏰",
+          text: `Segera selesaikan pembayaran sebelum pukul ${hours}:${minutes} hari ini`,
+        };
+      }
+      
       return {
-        bg: "bg-[#FFF3CD]",
-        border: "border-[#FFECB5]",
-        textColor: "text-[#856404]",
+        bg: "bg-orange-50",
+        border: "border-orange-200",
+        textColor: "text-orange-800",
         icon: "⏰",
-        text: "Bayar pesanan sebelum pukul 17.00 hari ini",
+        text: "Segera selesaikan pembayaran Anda",
       };
 
     case "dibayar":
+    case "paid":
       return {
         bg: "bg-blue-50",
         border: "border-blue-200",
-        textColor: "text-blue-700",
+        textColor: "text-blue-800",
         icon: "ℹ️",
         text: "Pesanan sudah dibayar dan akan segera dikirim oleh penjual",
       };
 
     case "dikirim":
+    case "delivered":
       return {
         bg: "bg-blue-50",
         border: "border-blue-200",
-        textColor: "text-blue-700",
+        textColor: "text-blue-800",
         icon: "📦",
-        text: "Paket sedang dalam perjalanan menuju alamat anda",
+        text: "Pesanan sedang dikirim dan segera tiba di tempat anda",
       };
 
     case "selesai":
+    case "completed":
       return {
-        bg: "bg-green-50",
-        border: "border-green-200",
-        textColor: "text-green-700",
+        bg: "bg-emerald-50",
+        border: "border-emerald-200",
+        textColor: "text-emerald-800",
         icon: "✅",
         text: "Pesanan telah selesai. Terimakasih sudah berbelanja!",
       };
 
     default:
-      return {
-        bg: "bg-gray-50",
-        border: "border-gray-200",
-        textColor: "text-gray-700",
-        icon: "ℹ️",
-        text: "Status pesanan",
-      };
+      return null;
   }
 }

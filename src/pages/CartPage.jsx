@@ -1,135 +1,167 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import CartItem from "../components/CartItem";
 import Button from "../components/Button";
 import { FaCheck } from "react-icons/fa";
 import { FiChevronLeft } from "react-icons/fi";
-
-const initial = [
-  {
-    id: 1,
-    name: "Indomie Goreng Original",
-    price: 3500,
-    qty: 10,
-    img: `https://picsum.photos/200/200?random=${Math.floor(
-      Math.random() * 1000
-    )}`,
-  },
-  {
-    id: 2,
-    name: "Teh Botol Sosro",
-    price: 5000,
-    qty: 5,
-    img: `https://picsum.photos/200/200?random=${Math.floor(
-      Math.random() * 1000
-    )}`,
-  },
-  {
-    id: 3,
-    name: "Susu UHT Full Cream",
-    price: 7000,
-    qty: 8,
-    img: `https://picsum.photos/200/200?random=${Math.floor(
-      Math.random() * 1000
-    )}`,
-  },
-  {
-    id: 4,
-    name: "Snack Kacang Garuda",
-    price: 12000,
-    qty: 12,
-    img: `https://picsum.photos/200/200?random=${Math.floor(
-      Math.random() * 1000
-    )}`,
-  },
-  {
-    id: 5,
-    name: "Roti Tawar Gandum",
-    price: 15000,
-    qty: 7,
-    img: `https://picsum.photos/200/200?random=${Math.floor(
-      Math.random() * 1000
-    )}`,
-  },
-];
+import { useNavigate } from "react-router-dom";
+import useCartStore from "../stores/useCartStore";
+import useOrderStore from "../stores/useOrderStore";
 
 export default function CartPage() {
-  const [items, setItems] = useState(() => {
-    const saved = localStorage.getItem("cartItems");
-    return saved ? JSON.parse(saved) : initial;
-  });
+  const navigate = useNavigate();
+  const { cartItems, fetchCart, updateCartItem, removeCartItem, loading } = useCartStore();
+  const { createOrder } = useOrderStore();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem("cartItems", JSON.stringify(items));
-  }, [items]);
+    fetchCart();
+  }, [fetchCart]);
 
-  const toggleItem = (id) =>
-    setItems((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, selected: !i.selected } : i))
-    );
-
-  const toggleSelectAll = () => {
-    const allSelected = items.every((i) => i.selected);
-    setItems((prev) => prev.map((i) => ({ ...i, selected: !allSelected })));
+  // TOGGLE 1 PRODUK
+  const toggleItem = (id) => {
+    useCartStore.setState((state) => ({
+      cartItems: state.cartItems.map((item) =>
+        item._id === id ? { ...item, selected: !item.selected } : item
+      ),
+    }));
   };
 
-  const changeQty = (id, qty) =>
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, qty } : i)));
+  // TOGGLE SEMUA PRODUK
+  const toggleSelectAll = () => {
+    const allSelected = cartItems.every((item) => item.selected);
 
-  const deleteItem = (id) =>
-    setItems((prev) => prev.filter((i) => i.id !== id));
+    useCartStore.setState((state) => ({
+      cartItems: state.cartItems.map((item) => ({
+        ...item,
+        selected: !allSelected,
+      })),
+    }));
+  };
 
-  const selectedItems = items.filter((i) => i && i.selected);
+  // UPDATE QTY
+  const changeQty = (id, qty) => {
+    if (qty < 1) return;
+    updateCartItem(id, qty);
+  };
+
+  // DELETE ITEM
+  const deleteItem = (id) => {
+    removeCartItem(id);
+  };
+
+ // LANJUT KE PEMESANAN - Create Order & Navigate
+  const handleProceedToOrder = async () => {
+    const selectedCartItems = cartItems.filter((item) => item.selected);
+
+    if (selectedCartItems.length === 0) {
+      alert("Pilih minimal 1 produk untuk melanjutkan pemesanan");
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      // Convert cart items ke format backend
+      const items = selectedCartItems.map((item) => ({
+        productId: item.productId._id,
+        quantity: item.qty,
+      }));
+
+      // Create order (status: pending)
+      const orderData = await createOrder(items);
+
+      if (orderData && orderData.orderId) {
+        // HAPUS ITEM YANG SUDAH DI-ORDER DARI CART
+        console.log("Menghapus item dari cart...");
+        for (const item of selectedCartItems) {
+          await removeCartItem(item._id);
+        }
+
+        // Refresh cart setelah hapus
+        await fetchCart();
+
+        // Navigate ke order page dengan orderId
+        navigate(`/order/${orderData.orderId}`);
+      } else {
+        alert("Gagal membuat pesanan");
+      }
+    } catch (error) {
+      console.error("Error creating order:", error);
+      alert("Terjadi kesalahan saat membuat pesanan");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // SUMMARY
+  const selectedItems = cartItems.filter((item) => item.selected);
+
   const summary = {
     productCount: selectedItems.length,
-    totalItems: selectedItems.reduce((s, it) => s + it.qty, 0),
-    totalPrice: selectedItems.reduce((s, it) => s + it.qty * it.price, 0),
+    totalItems: selectedItems.reduce((t, item) => t + item.qty, 0),
+    totalPrice: selectedItems.reduce(
+      (t, item) => t + item.qty * (item.productId?.price || 0),
+      0
+    ),
   };
 
   return (
     <main className="w-full py-6 px-4 max-w-6xl mx-auto">
-      {" "}
+      {/* HEADER */}
       <div className="flex items-center gap-3 mb-6">
-        <button className="p-2 rounded-lg hover:bg-gray-100 transition">
+        <button 
+          onClick={() => navigate(-1)}
+          className="p-2 rounded-lg hover:bg-gray-100 transition"
+        >
           <FiChevronLeft className="text-xl" />
         </button>
         <h1 className="text-xl font-semibold">Keranjang Belanja</h1>
       </div>
+
       <div className="flex flex-col lg:flex-row gap-6">
-        {" "}
+        {/* LIST PRODUK */}
         <section className="flex-1 space-y-4">
-          {" "}
           <div className="bg-white rounded-xl border border-neutral-100 p-3 sm:p-4 flex items-center justify-between gap-2">
-            {" "}
             <div className="flex items-center gap-2 sm:gap-3">
               <button
                 onClick={toggleSelectAll}
                 className={`w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded border-2 shrink-0 transition-colors ${
-                  items.length > 0 && items.every((i) => i.selected)
+                  cartItems.length > 0 &&
+                  cartItems.every((item) => item.selected)
                     ? "bg-primary-500 border-primary-500"
                     : "bg-white border-neutral-500 hover:border-primary-400"
                 }`}
               >
-                {items.length > 0 && items.every((i) => i.selected) && (
-                  <FaCheck className="w-3 h-3 text-white" />
-                )}{" "}
-              </button>{" "}
+                {cartItems.length > 0 &&
+                  cartItems.every((item) => item.selected) && (
+                    <FaCheck className="w-3 h-3 text-white" />
+                  )}
+              </button>
+
               <span
-                className="font-medium text-sm sm:text-base whitespace-nowrap cursor-pointer"
                 onClick={toggleSelectAll}
+                className="font-medium text-sm sm:text-base cursor-pointer whitespace-nowrap"
               >
-                Pilih Semua Produk{" "}
-              </span>{" "}
-            </div>{" "}
-            <span className="text-neutral-600 text-xs sm:text-sm whitespace-nowrap shrink-0">
-              ({summary.productCount} Produk) terpilih{" "}
-            </span>{" "}
+                Pilih Semua Produk
+              </span>
+            </div>
+
+            <span className="text-neutral-600 text-xs sm:text-sm whitespace-nowrap">
+              ({summary.productCount} Produk) terpilih
+            </span>
           </div>
+
+          {/* LIST ITEM */}
           <div className="space-y-4">
-            {items.length > 0 ? (
-              items.map((it) => (
+            {loading && cartItems.length === 0 ? (
+              <div className="bg-white rounded-xl border border-neutral-100 p-8 text-center">
+                <p className="text-gray-500">Loading...</p>
+              </div>
+            ) : cartItems.length > 0 ? (
+              cartItems.map((item) => (
                 <CartItem
-                  key={it.id}
-                  item={it}
+                  key={item._id}
+                  item={item}
                   onToggle={toggleItem}
                   onQtyChange={changeQty}
                   onDelete={deleteItem}
@@ -144,14 +176,18 @@ export default function CartPage() {
             )}
           </div>
         </section>
+
+        {/* RINGKASAN */}
         <aside className="w-full lg:w-80">
           <div className="bg-white rounded-xl border border-neutral-100 p-5 shadow-sm">
             <h2 className="font-semibold text-lg mb-4">Ringkasan Pesanan</h2>
+
             <div className="text-sm text-neutral-700 mb-3">
               <div className="flex justify-between py-2">
                 <span>Produk terpilih</span>
                 <span>{summary.productCount} produk</span>
               </div>
+
               <div className="flex justify-between py-2">
                 <span>Jumlah item</span>
                 <span>{summary.totalItems} item</span>
@@ -167,8 +203,14 @@ export default function CartPage() {
               </div>
             </div>
 
-            <Button variant="primary" fullWidth size="md">
-              Lanjut ke Pemesanan
+            <Button
+              variant="primary"
+              fullWidth
+              size="md"
+              onClick={handleProceedToOrder}
+              disabled={isProcessing || selectedItems.length === 0}
+            >
+              {isProcessing ? "Memproses..." : "Lanjut ke Pemesanan"}
             </Button>
           </div>
         </aside>

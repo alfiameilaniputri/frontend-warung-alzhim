@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   FiChevronLeft,
   FiShoppingBag,
@@ -8,92 +9,144 @@ import {
 } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
 import Button from "../components/Button";
+import useProductStore from "../stores/useProductStore";
+import useCartStore from "../stores/useCartStore";
+import useOrderStore from "../stores/useOrderStore";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function ProductDetailPage() {
+  const { productId } = useParams();
+  const navigate = useNavigate();
+
+  const {
+    productDetail,
+    fetchProductDetail,
+    detailLoading,
+    detailError,
+    productReviews,
+    fetchProductReviews,
+    reviewsLoading,
+  } = useProductStore();
+
+  const { addCartItem, fetchCart } = useCartStore();
+  const { createOrder } = useOrderStore();
+
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [isBuying, setIsBuying] = useState(false);
 
-  const product = {
-    name: "Telur Ayam 1/4 Kg",
-    price: "8000",
-    rating: 4.5,
-    reviews: 50,
-    stock: 200,
-    description:
-      "Telur Ayam 1/4 Kg berisi sekitar 4 butir telur segar. Cocok untuk kebutuhan memasak sehari-hari.",
-    images: [
-      "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=500&h=500&fit=crop",
-      "https://images.unsplash.com/photo-1506976785307-8732e854ad03?w=500&h=500&fit=crop",
-    ],
-  };
+  useEffect(() => {
+    if (!productId) return;
+    fetchProductDetail(productId);
+    fetchProductReviews(productId);
+  }, [productId, fetchProductDetail, fetchProductReviews]);
 
-  const allReviews = [
-    {
-      name: "Siti Aminah",
-      rating: 5,
-      date: "2 hari yang lalu",
-      comment:
-        "Telurnya segar banget! Dikirim dengan packaging yang rapi, tidak ada yang pecah. Cocok untuk masak sehari-hari.",
-      avatar: "SA",
-    },
-    {
-      name: "Budi Santoso",
-      rating: 4,
-      date: "5 hari yang lalu",
-      comment:
-        "Kualitas bagus, harga terjangkau. Cuma pengiriman agak lama, tapi overall puas!",
-      avatar: "BS",
-    },
-    {
-      name: "Dewi Lestari",
-      rating: 5,
-      date: "1 minggu yang lalu",
-      comment:
-        "Sudah order berkali-kali, selalu fresh dan berkualitas. Recommended seller!",
-      avatar: "DL",
-    },
-    {
-      name: "Ahmad Yani",
-      rating: 5,
-      date: "1 minggu yang lalu",
-      comment:
-        "Telur besar-besar dan bersih. Pengiriman cepat, packing aman pakai bubble wrap.",
-      avatar: "AY",
-    },
-    {
-      name: "Rina Wati",
-      rating: 4,
-      date: "2 minggu yang lalu",
-      comment:
-        "Bagus sih telurnya, tapi 1 ada yang retak dikit. Overall masih oke lah untuk harga segini.",
-      avatar: "RW",
-    },
-    {
-      name: "Hendra Wijaya",
-      rating: 5,
-      date: "2 minggu yang lalu",
-      comment:
-        "Langganan di sini terus. Stoknya selalu ready dan kualitas konsisten.",
-      avatar: "HW",
-    },
-  ];
+  // Calculate average rating
+  const averageRating =
+    productReviews.length > 0
+      ? (
+          productReviews.reduce((sum, review) => sum + review.rating, 0) /
+          productReviews.length
+        ).toFixed(1)
+      : 0;
+
+  const totalReviews = productReviews.length;
 
   const handleDecrease = () => {
     if (quantity > 1) setQuantity(quantity - 1);
   };
 
   const handleIncrease = () => {
-    if (quantity < product.stock) setQuantity(quantity + 1);
+    if (productDetail && quantity < productDetail.stock)
+      setQuantity(quantity + 1);
   };
 
-  const reviewsToShow = showAllReviews ? allReviews : allReviews.slice(0, 3);
+  const handleAddToCart = async () => {
+    if (!productDetail || isAddingToCart) return;
+
+    setIsAddingToCart(true);
+    try {
+      const success = await addCartItem(productDetail, quantity);
+
+      if (success) {
+        alert("Produk berhasil ditambahkan ke keranjang!");
+        await fetchCart(); // Refresh cart count
+      } else {
+        alert("Gagal menambahkan produk ke keranjang");
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      alert("Terjadi kesalahan saat menambahkan ke keranjang");
+    } finally {
+      setIsAddingToCart(false);
+    }
+  };
+
+  const handleBuyNow = async () => {
+    if (!productDetail || isBuying) return;
+
+    setIsBuying(true);
+    try {
+      // Format sesuai backend: items: [{ productId, quantity }]
+      const items = [
+        {
+          productId: productDetail._id,
+          quantity: quantity,
+        },
+      ];
+
+      const itemsSelect = [
+        {
+          productId: {
+            _id : productDetail._id,
+            price: productDetail.price,
+            images: productDetail.images,
+          },
+          qty: quantity,
+        },
+      ];
+
+      const orderData = await createOrder(items);
+
+      if (orderData && orderData.orderId) {
+        const selectedItems = itemsSelect;
+        console.log("Order created:", itemsSelect);
+        // Redirect ke halaman order
+        navigate(`/order/${orderData.orderId}`, { state: { selectedItems } });
+      } else {
+        alert("Gagal membuat pesanan");
+        setIsBuying(false);
+      }
+    } catch (error) {
+      console.error("Error creating order:", error);
+      alert("Terjadi kesalahan saat membuat pesanan");
+      setIsBuying(false);
+    }
+  };
+
+  if (detailLoading) return <p className="p-4">Loading produk...</p>;
+  if (detailError) return <p className="p-4 text-red-500">{detailError}</p>;
+  if (!productDetail) return <p className="p-4">Produk tidak ditemukan.</p>;
+
+  const images = Array.isArray(productDetail.images)
+    ? productDetail.images
+    : [];
+  const mainImage = images[selectedImage] || "";
+  const reviewsToShow = showAllReviews
+    ? productReviews
+    : productReviews.slice(0, 3);
 
   return (
     <div className="bg-white min-h-screen">
       {/* HEADER */}
       <div className="sticky top-0 bg-neutral-100 z-10 py-3 flex items-center gap-3">
-        <button className="text-neutral-800 text-2xl pt-2 pr-4">
+        <button
+          className="text-neutral-800 text-2xl pt-2 pr-4"
+          onClick={() => navigate(-1)}
+        >
           <FiChevronLeft />
         </button>
         <h1 className="text-xl font-bold pt-2">Detail Produk</h1>
@@ -105,15 +158,15 @@ export default function ProductDetailPage() {
         <div className="md:w-1/2 md:h-full">
           <div className="rounded-xl overflow-hidden aspect-square">
             <img
-              src={product.images[selectedImage]}
-              alt="produk"
+              src={mainImage ? `${API_URL}/public/products/${mainImage}` : ""}
+              alt={productDetail.name}
               className="w-full h-full object-cover"
             />
           </div>
 
           {/* Thumbnail */}
           <div className="flex gap-2 mt-3 overflow-x-auto">
-            {product.images.map((img, index) => (
+            {images.map((img, index) => (
               <button
                 key={index}
                 onClick={() => setSelectedImage(index)}
@@ -123,7 +176,11 @@ export default function ProductDetailPage() {
                     : "border-neutral-200"
                 }`}
               >
-                <img src={img} alt="" className="w-full h-full object-cover" />
+                <img
+                  src={`${API_URL}/public/products/${img}`}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
               </button>
             ))}
           </div>
@@ -131,47 +188,50 @@ export default function ProductDetailPage() {
 
         {/* RIGHT SIDE */}
         <div className="md:w-1/2 mt-6 md:mt-0">
-          {/* NAMA */}
           <h2 className="text-2xl md:text-3xl font-semibold text-neutral-900 mb-2 leading-tight">
-            {product.name}
+            {productDetail.name}
           </h2>
 
           {/* RATING */}
           <div className="flex items-center gap-2 mb-3">
             <div className="flex items-center gap-1 text-yellow-400 text-lg">
               {[...Array(5)].map((_, i) => (
-                <FaStar key={i} />
+                <FaStar
+                  key={i}
+                  className={
+                    i < Math.floor(averageRating)
+                      ? "text-yellow-400"
+                      : "text-neutral-300"
+                  }
+                />
               ))}
             </div>
-
             <span className="text-base text-neutral-700 leading-none flex items-center">
-              {product.rating} / 5.0
+              {averageRating} / 5.0
             </span>
-
             <span className="text-neutral-400 text-sm leading-none flex items-center">
               •
             </span>
-
             <span className="text-sm text-neutral-700 leading-none flex items-center">
-              {product.reviews} Ulasan
+              {totalReviews} Ulasan
             </span>
           </div>
 
           {/* HARGA */}
           <p className="text-2xl md:text-3xl font-bold text-primary-500 mb-4">
-            Rp. {product.price}
+            Rp. {productDetail.price?.toLocaleString("id-ID")}
           </p>
 
           {/* DESKRIPSI */}
           <p className="text-base md:text-base text-neutral-700 mb-4 leading-relaxed text-justify">
-            {product.description}
+            {productDetail.description}
           </p>
 
           {/* STOK */}
           <div className="flex items-center gap-2 bg-green-50 px-3 py-2 rounded-lg mb-6">
             <FiCheck className="text-primary-500" size={24} />
             <span className="text-base font-medium lg:font-semibold text-primary-500">
-              Stok Tersedia: {product.stock} pcs
+              Stok Tersedia: {productDetail.stock} pcs
             </span>
           </div>
 
@@ -179,8 +239,6 @@ export default function ProductDetailPage() {
           <div className="mb-6">
             <div className="flex items-center justify-between md:justify-start md:gap-4 mb-2">
               <label className="text-lg font-semibold">Jumlah:</label>
-
-              {/* BOX QTY */}
               <div className="flex items-center bg-neutral-50 border border-neutral-300 rounded-xl px-4 py-2 gap-6">
                 <button
                   onClick={handleDecrease}
@@ -188,11 +246,9 @@ export default function ProductDetailPage() {
                 >
                   <FiMinus />
                 </button>
-
                 <span className="w-6 text-center font-semibold text-neutral-900">
                   {quantity}
                 </span>
-
                 <button
                   onClick={handleIncrease}
                   className="w-8 h-8 flex items-center justify-center rounded-lg bg-neutral-100 hover:bg-neutral-200 transition"
@@ -208,17 +264,21 @@ export default function ProductDetailPage() {
             <Button
               variant="outline"
               className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 border-green-500 text-green-600 hover:bg-green-50"
+              onClick={handleAddToCart}
+              disabled={isAddingToCart}
             >
               <FiPlus size={20} />
-              Masukkan Keranjang
+              {isAddingToCart ? "Menambahkan..." : "Masukkan Keranjang"}
             </Button>
 
             <Button
               variant="primary"
               className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 bg-green-500 text-white hover:bg-green-600"
+              onClick={handleBuyNow}
+              disabled={isBuying}
             >
               <FiShoppingBag size={20} />
-              Beli Sekarang
+              {isBuying ? "Memproses..." : "Beli Sekarang"}
             </Button>
           </div>
         </div>
@@ -230,64 +290,72 @@ export default function ProductDetailPage() {
           Ulasan Pembeli
         </h3>
 
-        {/* Review Items */}
-        <div className="space-y-4">
-          {reviewsToShow.map((review, index) => (
-            <div
-              key={index}
-              className="border-b border-neutral-200 pb-4 last:border-b-0"
-            >
-              <div className="flex items-start gap-3">
-                {/* Avatar */}
-                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-semibold shrink-0">
-                  {review.avatar}
-                </div>
-
-                <div className="flex-1">
-                  {/* Name & Date */}
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="font-semibold text-neutral-900">
-                      {review.name}
-                    </h4>
-                    <span className="text-xs text-neutral-500">
-                      {review.date}
-                    </span>
+        {reviewsLoading ? (
+          <p>Loading ulasan...</p>
+        ) : productReviews.length === 0 ? (
+          <p>Belum ada ulasan untuk produk ini.</p>
+        ) : (
+          <>
+            <div className="space-y-4">
+              {reviewsToShow.map((review) => (
+                <div
+                  key={review._id}
+                  className="border-b border-neutral-200 pb-4 last:border-b-0"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-semibold shrink-0">
+                      {review.buyer?.name?.[0]?.toUpperCase() || "?"}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className="font-semibold text-neutral-900">
+                          {review.buyer?.name || "Anonymous"}
+                        </h4>
+                        <span className="text-xs text-neutral-500">
+                          {new Date(review.createdAt).toLocaleDateString(
+                            "id-ID",
+                            {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            }
+                          )}
+                        </span>
+                      </div>
+                      <div className="flex gap-1 mb-2">
+                        {[...Array(5)].map((_, i) => (
+                          <FaStar
+                            key={i}
+                            className={
+                              i < review.rating
+                                ? "text-yellow-400"
+                                : "text-neutral-300"
+                            }
+                            size={14}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-sm text-neutral-700 leading-relaxed">
+                        {review.comment}
+                      </p>
+                    </div>
                   </div>
-
-                  {/* Rating Stars */}
-                  <div className="flex gap-1 mb-2">
-                    {[...Array(5)].map((_, i) => (
-                      <FaStar
-                        key={i}
-                        className={
-                          i < review.rating
-                            ? "text-yellow-400"
-                            : "text-neutral-300"
-                        }
-                        size={14}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Comment */}
-                  <p className="text-sm text-neutral-700 leading-relaxed">
-                    {review.comment}
-                  </p>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        {/* Lihat Semua Ulasan */}
-        <button
-          onClick={() => setShowAllReviews(!showAllReviews)}
-          className="w-full mt-4 py-3 border border-neutral-300 rounded-xl text-neutral-700 font-medium hover:bg-neutral-50 transition"
-        >
-          {showAllReviews
-            ? "Sembunyikan Ulasan"
-            : `Lihat Semua Ulasan (${product.reviews})`}
-        </button>
+            {productReviews.length > 3 && (
+              <button
+                onClick={() => setShowAllReviews(!showAllReviews)}
+                className="w-full mt-4 py-3 border border-neutral-300 rounded-xl text-neutral-700 font-medium hover:bg-neutral-50 transition"
+              >
+                {showAllReviews
+                  ? "Sembunyikan Ulasan"
+                  : `Lihat Semua Ulasan (${productReviews.length})`}
+              </button>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

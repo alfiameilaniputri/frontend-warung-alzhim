@@ -1,20 +1,38 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import LogoutConfirmationModal from "./LogoutConfirmationModal";
+import useOrderStore from "../stores/useOrderStore";
+import { useEffect } from "react";
+import useAuthStore from "../stores/useAuthStore";
 
 export default function Sidebar() {
   const location = useLocation();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { onlineOrders, offlineOrders, loading, error, fetchOnlineOrders, fetchOfflineOrders } = useOrderStore();
+
+  const { profile, fetchProfile, toggleActive } = useAuthStore();
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  console.log("profile", profile?.isActive)
+
+  useEffect(() => {
+    fetchOnlineOrders();
+  }, [fetchOnlineOrders]);
+
+  console.log("online order", onlineOrders.length)
 
   const isActive = (path) => location.pathname.startsWith(path);
 
   const links = [
     { label: "Laporan Penjualan", path: "/seller/sales-report" },
-    { 
-      label: "Pesanan Online", 
-      path: "/seller/order-online", 
-      badge: 3 // Dummy data: 3 pesanan online baru
+    {
+      label: "Pesanan Online",
+      path: "/seller/order-online",
+      badge: `${onlineOrders.length}`
     },
     { label: "Transaksi Offline", path: "/seller/transaction-offline" },
     { label: "Kelola Produk", path: "/seller/manage-products" },
@@ -56,9 +74,8 @@ export default function Sidebar() {
 
       {/* ==================== MOBILE SIDEBAR ==================== */}
       <aside
-        className={`md:hidden fixed top-0 left-0 bottom-0 w-80 bg-[#F7F9F7] z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`md:hidden fixed top-0 left-0 bottom-0 w-80 bg-[#F7F9F7] z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         {/* Header Mobile Sidebar */}
         <div className="shrink-0 p-6">
@@ -93,10 +110,9 @@ export default function Sidebar() {
                   to={link.path}
                   onClick={handleLinkClick}
                   className={`flex items-center justify-between w-full px-4 py-3 rounded-md transition-all duration-150
-                    ${
-                      active
-                        ? "bg-green-100 text-green-700"
-                        : "hover:bg-neutral-200"
+                    ${active
+                      ? "bg-green-100 text-green-700"
+                      : "hover:bg-neutral-200"
                     }
                   `}
                 >
@@ -122,7 +138,31 @@ export default function Sidebar() {
         </div>
 
         {/* Profile Mobile */}
-        <div className="shrink-0 p-6 border-t border-neutral-300 bg-[#F7F9F7]">
+        <div className="shrink-0 p-6 border-t border-neutral-300 bg-[#F7F9F7] space-y-3">
+          {/* Status Warung Mobile - PINDAH KE ATAS */}
+          <div className="flex items-center justify-between bg-white px-4 py-3 rounded-lg border border-neutral-200">
+            <span className="text-sm font-medium text-neutral-700">
+              Status Warung
+            </span>
+            <div className="flex items-center gap-3">
+              <span className={`text-sm font-semibold ${profile?.isActive ? 'text-green-600' : 'text-red-600'}`}>
+                {profile?.isActive ? 'Buka' : 'Tutup'}
+              </span>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={profile?.isActive}
+                  onChange={(e) => toggleActive(e.target.checked)}
+                />
+                <div className="relative w-11 h-6 bg-gray-300 rounded-full transition-all duration-300 peer-checked:bg-green-500">
+                  <span className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-all duration-300 transform peer-checked:translate-x-5 peer-active:scale-95"></span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          {/* Profile Info Mobile */}
           <div className="flex items-center gap-3">
             <div className="shrink-0">
               <img
@@ -158,10 +198,9 @@ export default function Sidebar() {
                   key={link.path}
                   to={link.path}
                   className={`flex items-center justify-between w-full px-4 py-2 rounded-md transition-all duration-150
-                    ${
-                      active
-                        ? "bg-green-100 text-green-700"
-                        : "hover:bg-neutral-200"
+                    ${active
+                      ? "bg-green-100 text-green-700"
+                      : "hover:bg-neutral-200"
                     }
                   `}
                 >
@@ -183,21 +222,47 @@ export default function Sidebar() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-3 mt-3 pt-3 border-t border-neutral-300">
-          <div className="shrink-0">
-            <img
-              src="/logo-web-warung-alzhim.png"
-              alt="Profil"
-              className="w-8 h-8"
-            />
+        <div className="space-y-3">
+          {/* Status Warung Desktop - PINDAH KE ATAS */}
+          <div className="flex items-center justify-between bg-white px-3 py-2.5 rounded-lg border border-neutral-200">
+            <span className="text-xs font-medium text-neutral-700">
+              Status Warung
+            </span>
+            <div className="flex items-center gap-2">
+              <span className={`text-xs font-semibold ${profile?.isActive ? 'text-green-600' : 'text-red-600'}`}>
+                {profile?.isActive ? 'Buka' : 'Tutup'}
+              </span>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={profile?.isActive}
+                  onChange={(e) => toggleActive(e.target.checked)}
+                />
+                <div className="relative w-11 h-6 bg-gray-300 rounded-full transition-all duration-300 peer-checked:bg-green-500">
+                  <span className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-all duration-300 transform peer-checked:translate-x-5 peer-active:scale-95"></span>
+                </div>
+              </label>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-neutral-900 truncate">
-              Warung Alzhim
-            </p>
-            <p className="text-xs text-neutral-600 truncate">
-              ucansr@gmail.com
-            </p>
+
+          {/* Profile Desktop */}
+          <div className="flex items-center gap-3 pt-3 border-t border-neutral-300">
+            <div className="shrink-0">
+              <img
+                src="/logo-web-warung-alzhim.png"
+                alt="Profil"
+                className="w-8 h-8"
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-neutral-900 truncate">
+                Warung Alzhim
+              </p>
+              <p className="text-xs text-neutral-600 truncate">
+                ucansr@gmail.com
+              </p>
+            </div>
           </div>
         </div>
       </aside>

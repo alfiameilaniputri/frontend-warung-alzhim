@@ -1,12 +1,19 @@
-import React from "react";
-import { FaStar } from "react-icons/fa";
-
-// Import komponen
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import CategoryCard from "../components/CategoryCard";
 import ProductCard from "../components/ProductCard";
+import useProductStore from "../stores/useProductStore";
 
 export default function HomePage() {
-  // Data kategori
+  const { products, fetchProducts, loading, error } = useProductStore();
+  const [selectedCategory, setSelectedCategory] = useState("Semua");
+
+  const API_URL = import.meta.env.VITE_API_URL;
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
   const categories = [
     { image: "/semua.png", label: "Semua" },
     { image: "/sembako.png", label: "Sembako" },
@@ -16,103 +23,33 @@ export default function HomePage() {
     { image: "/lainnya.png", label: "Lainnya" },
   ];
 
-  // Data produk terbaru pakai gambar random
-  const newProducts = [
-    // === MAKANAN ===
-    {
-      id: 1,
-      image: `https://picsum.photos/seed/noodle1/200/200`,
-      name: "Indomie Goreng Original",
-      price: "3.500",
-      rating: 50,
-      stock: 50,
-      category: "Makanan",
-    },
-    {
-      id: 2,
-      image: `https://picsum.photos/seed/noodle2/200/200`,
-      name: "Mie Sedaap Kari Spesial",
-      price: "3.200",
-      rating: 60,
-      stock: 40,
-      category: "Makanan",
-    },
+  // Mapping kategori ke ikon (pakai lowercase sesuai database)
+  const categoryIcons = {
+    sembako: "/sembako.png",
+    makanan: "/makanan.png",
+    minuman: "/minuman.png",
+    kebersihan: "/kebersihan.png",
+    lainnya: "/lainnya.png",
+  };
 
-    // === MINUMAN ===
-    {
-      id: 3,
-      image: `https://picsum.photos/seed/drink1/200/200`,
-      name: "Teh Botol Sosro 500ml",
-      price: "5.000",
-      rating: 75,
-      stock: 100,
-      category: "Minuman",
-    },
-    {
-      id: 4,
-      image: `https://picsum.photos/seed/drink2/200/200`,
-      name: "Susu Ultra Milk Coklat 250ml",
-      price: "7.500",
-      rating: 58,
-      stock: 45,
-      category: "Minuman",
-    },
+  // filter produk berdasarkan kategori
+  const filteredProducts =
+    selectedCategory === "Semua"
+      ? products
+      : products.filter(
+          (p) =>
+            p.category?.name?.toLowerCase() === selectedCategory.toLowerCase()
+        );
 
-    // === BUMBU DAPUR ===
-    {
-      id: 5,
-      image: `https://picsum.photos/seed/sauce1/200/200`,
-      name: "Kecap Bango 220ml",
-      price: "15.000",
-      rating: 68,
-      stock: 40,
-      category: "Lainnya",
-    },
-    {
-      id: 6,
-      image: `https://picsum.photos/seed/oil1/200/200`,
-      name: "Minyak Goreng Tropical 1L",
-      price: "18.000",
-      rating: 62,
-      stock: 50,
-      category: "Lainnya",
-    },
-
-    // === MAKANAN ===
-    {
-      id: 7,
-      image: `https://picsum.photos/seed/snack1/200/200`,
-      name: "Chitato Rasa Sapi Panggang",
-      price: "10.500",
-      rating: 70,
-      stock: 60,
-      category: "Makanan",
-    },
-
-    // === SEMBAKO ===
-    {
-      id: 8,
-      image: `https://picsum.photos/seed/rice1/200/200`,
-      name: "Beras Premium 5kg",
-      price: "75.000",
-      rating: 66,
-      stock: 25,
-      category: "Sembako",
-    },
-  ];
-
-  // Data produk terlaris
-  const bestSellingProducts = [
-    { image: "/makanan.png", name: "Indomie Goreng", price: "3.500" },
-    { image: "/minuman.png", name: "Aqua Botol 600 ml", price: "3.000" },
-    { image: "/sembako.png", name: "Gula Putih 1/4", price: "5.000" },
-  ];
+  // Ambil 3 produk terlaris (berdasarkan sold tertinggi)
+  const bestSellingProducts = [...products]
+    .sort((a, b) => (b.sold || 0) - (a.sold || 0))
+    .slice(0, 3);
 
   return (
     <div className="bg-neutral-100 pb-12 font-poppins">
-      {/* ==================== BANNER ==================== */}
+      {/* Banner */}
       <div className="w-full p-4 lg:pt-10">
-        {/* Banner Mobile */}
         <img
           src="/banner-warung-alzhim-persegi.png"
           alt="banner mobile"
@@ -122,8 +59,6 @@ export default function HomePage() {
               "https://via.placeholder.com/600x300?text=Mobile+Banner")
           }
         />
-
-        {/* Banner Desktop */}
         <img
           src="/banner-warung-alzhim.png"
           alt="banner desktop"
@@ -148,48 +83,62 @@ export default function HomePage() {
           </h2>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 lg:gap-8 sm:gap-4 md:grid-cols-3 lg:grid-cols-3">
-          {bestSellingProducts.map((item, i) => (
-            <div
-              key={i}
-              className="bg-secondary-50 rounded-xl shadow border-l-4 border-secondary-500 flex flex-col justify-between items-center text-center p-3 aspect-square md:aspect-auto"
-            >
-              <img
-                src={item.image}
-                className="w-10 h-10 sm:w-16 sm:h-16 lg:w-18 lg:h-18 object-contain mb-2"
-              />
-              <h3 className="font-bold text-xs sm:text-sm lg:text-base line-clamp-2">
-                {item.name}
-              </h3>
-              <p className="font-bold text-secondary-500 text-base sm:text-md lg:text-xl mt-1">
-                Rp. {item.price}
-              </p>
-            </div>
-          ))}
-        </div>
+        {loading ? (
+          <p>Loading produk...</p>
+        ) : bestSellingProducts.length === 0 ? (
+          <p>Belum ada produk terlaris.</p>
+        ) : (
+          <div className="grid grid-cols-3 gap-3 lg:gap-8 sm:gap-4 md:grid-cols-3 lg:grid-cols-3">
+            {bestSellingProducts.map((item) => {
+              // Ambil ikon berdasarkan kategori (lowercase)
+              const categoryName =
+                item.category?.name?.toLowerCase() || "lainnya";
+              const iconUrl = categoryIcons[categoryName] || "/lainnya.png";
+
+              return (
+                <Link key={item._id} to={`/product/${item._id}`}>
+                  <div className="bg-secondary-50 rounded-xl shadow border-l-4 border-secondary-500 flex flex-col justify-between items-center text-center p-3 aspect-square md:aspect-auto hover:shadow-lg transition-shadow">
+                    <img
+                      src={iconUrl}
+                      alt={categoryName}
+                      className="w-10 h-10 sm:w-16 sm:h-16 lg:w-18 lg:h-18 object-contain mb-2"
+                    />
+                    <h3 className="font-bold text-xs sm:text-sm lg:text-base line-clamp-2">
+                      {item.name}
+                    </h3>
+                    <p className="font-bold text-secondary-500 text-base sm:text-md lg:text-xl mt-1">
+                      Rp. {(item.price || 0).toLocaleString("id-ID")}
+                    </p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* ==================== KATEGORI ==================== */}
+      {/* Kategori */}
       <div className="w-full mt-10 px-2">
         <div className="flex items-center gap-2 mb-4">
-          <img
-            src="/kategori-produk.png"
-            alt="kategori"
-            className="w-6 h-6 object-contain"
-          />
+          <img src="/kategori-produk.png" alt="kategori" className="w-6 h-6" />
           <h2 className="text-lg font-bold text-neutral-900">
             Kategori Produk
           </h2>
         </div>
 
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-4 lg:gap-10">
-          {categories.map((item, i) => (
-            <CategoryCard key={i} image={item.image} label={item.label} />
+          {categories.map((cat) => (
+            <CategoryCard
+              key={cat.label}
+              image={cat.image}
+              label={cat.label}
+              onClick={() => setSelectedCategory(cat.label)}
+            />
           ))}
         </div>
       </div>
 
-      {/* ==================== PRODUK TERBARU ==================== */}
+      {/* Produk Terbaru */}
       <div className="w-full mt-10 px-2">
         <div className="flex items-center gap-2 mb-4">
           <img
@@ -200,19 +149,50 @@ export default function HomePage() {
           <h2 className="text-lg font-bold text-neutral-900">Produk Terbaru</h2>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6 lg:gap-16">
-          {newProducts.map((p, i) => (
-            <ProductCard
-              key={i}
-              id={p.id}
-              image={p.image}
-              name={p.name}
-              price={p.price}
-              rating={p.rating}
-              stock={p.stock}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <p>Loading produk...</p>
+        ) : error ? (
+          <p className="text-red-500">{error}</p>
+        ) : filteredProducts.length === 0 ? (
+          <p>Produk tidak tersedia.</p>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6 lg:gap-16">
+            {filteredProducts.map((p) => {
+              if (!p || !p._id) {
+                console.warn("⚠️ Produk tidak valid:", p);
+                return null;
+              }
+
+              let imageUrl = "https://via.placeholder.com/200?text=No+Image";
+              try {
+                if (
+                  p.images &&
+                  Array.isArray(p.images) &&
+                  p.images.length > 0 &&
+                  typeof p.images[0] === "string" &&
+                  p.images[0].trim() !== ""
+                ) {
+                  imageUrl = `${API_URL}/public/products/${p.images[0]}`;
+                }
+              } catch (err) {
+                console.error("❌ Error processing image:", err);
+              }
+
+              return (
+                <Link key={p._id} to={`/product/${p._id}`}>
+                  <ProductCard
+                    id={p._id}
+                    image={imageUrl}
+                    name={p.name || "Produk"}
+                    price={p.price || 0}
+                    rating={p.rating || 5}
+                    stock={p.stock ?? 0}
+                  />
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

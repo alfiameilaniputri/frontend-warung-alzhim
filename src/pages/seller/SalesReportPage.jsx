@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiShoppingBag, FiShoppingCart, FiDollarSign } from "react-icons/fi";
 import OfflineOrderDetailModal from "../../components/OfflineOrderDetailModal";
 import jsPDF from "jspdf";
+import useOrderStore from "../../stores/useOrderStore";
 
 function Button({ variant, className, children, ...props }) {
   const baseClass = "px-4 py-2 rounded-lg font-medium transition-colors";
@@ -20,9 +21,7 @@ function Button({ variant, className, children, ...props }) {
 function SummaryCard({ icon: Icon, label, value }) {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-neutral-200 p-6 flex items-center gap-4">
-      <div
-        className={`w-16 h-16 rounded-full bg-green-500 flex items-center justify-center text-white`}
-      >
+      <div className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center text-white">
         <Icon size={32} />
       </div>
       <div className="text-center">
@@ -35,6 +34,15 @@ function SummaryCard({ icon: Icon, label, value }) {
 
 export default function SalesReportPage() {
   const navigate = useNavigate();
+  const {
+    onlineOrders,
+    offlineOrders,
+    loading,
+    error,
+    fetchOnlineOrders,
+    fetchOfflineOrders,
+  } = useOrderStore();
+
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -42,160 +50,45 @@ export default function SalesReportPage() {
   const [showAllOnlineOrders, setShowAllOnlineOrders] = useState(false);
   const [showAllOfflineOrders, setShowAllOfflineOrders] = useState(false);
 
-  // Get today's date for dummy data
-  const getTodayDateStr = () => {
-    const today = new Date();
-    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
-      2,
-      "0"
-    )}-${String(today.getDate()).padStart(2, "0")}`;
-  };
+  // Cek admin di awal
+  useEffect(() => {
+    const token = localStorage.getItem("token");
 
-  const todayDateStr = getTodayDateStr();
+    if (!token) {
+      navigate("/login");
+      return;
+    }
 
-  // Data Online Orders - Sinkronisasi dengan PesananOnlinePage
-  const onlineOrders = [
-    {
-      id: "12345",
-      buyer: "Ansela Maharani",
-      products: "Indomie Goreng, Floridina",
-      qty: 2,
-      total: "Rp 48.000",
-      time: "14:30",
-      date: todayDateStr,
-      status: "Selesai",
-    },
-    {
-      id: "12346",
-      buyer: "Budi Santoso",
-      products: "Aqua 600 ml, Susu Ultra 1L, Roti Tawar",
-      qty: 3,
-      total: "Rp 67.000",
-      time: "13:15",
-      date: todayDateStr,
-      status: "Dibayar",
-    },
-    {
-      id: "12344",
-      buyer: "Andi Wijaya",
-      products: "Telur 1/4 Kg, Minyak 1/2 Liter",
-      qty: 2,
-      total: "Rp 18.000",
-      time: "12:30",
-      date: todayDateStr,
-      status: "Dibayar",
-    },
-    {
-      id: "12343",
-      buyer: "Andi Wijaya",
-      products: "Beras 1 Liter",
-      qty: 1,
-      total: "Rp 120.000",
-      time: "10:00",
-      date: todayDateStr,
-      status: "Dikirim",
-    },
-    {
-      id: "12342",
-      buyer: "Andi Wijaya",
-      products: "Pasta Gigi Pepsodent Kecil",
-      qty: 1,
-      total: "Rp 25.000",
-      time: "08:30",
-      date: todayDateStr,
-      status: "Selesai",
-    },
-  ];
+    // Decode token & cek role
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      if (payload.role !== "admin") {
+        alert("Akses ditolak! Halaman ini khusus admin.");
+        navigate("/");
+      }
+    } catch (error) {
+      navigate("/login");
+    }
+  }, [navigate]);
 
-  // Data Offline Orders - Dummy transaksi hari ini >5
-  const offlineOrders = [
-    {
-      id: "OFF-001-2024",
-      date: todayDateStr,
-      time: "08:00",
-      items: [
-        { name: "Indomie Goreng", qty: 20, price: 40000 },
-        { name: "Mie Telur", qty: 15, price: 50000 },
-      ],
-      total: 1550000,
-    },
+  // useEffect fetch data yang sudah ada
+  useEffect(() => {
+    const fetchData = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
 
-    {
-      id: "OFF-002-2024",
-      date: todayDateStr,
-      time: "09:30",
-      items: [{ name: "Gula Putih 1 Kg", qty: 10, price: 120000 }],
-      total: 1200000,
-    },
+      try {
+        await Promise.all([fetchOnlineOrders(), fetchOfflineOrders()]);
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+      }
+    };
 
-    {
-      id: "OFF-003-2024",
-      date: todayDateStr,
-      time: "10:15",
-      items: [{ name: "Minyak Goreng 2 Liter", qty: 8, price: 35000 }],
-      total: 280000,
-    },
-
-    {
-      id: "OFF-004-2024",
-      date: todayDateStr,
-      time: "11:00",
-      items: [{ name: "Telur Ayam 1 Kg", qty: 12, price: 75000 }],
-      total: 900000,
-    },
-
-    {
-      id: "OFF-005-2024",
-      date: todayDateStr,
-      time: "14:30",
-      items: [{ name: "Kopi Premium 500gr", qty: 6, price: 85000 }],
-      total: 510000,
-    },
-
-    {
-      id: "OFF-006-2024",
-      date: todayDateStr,
-      time: "15:45",
-      items: [{ name: "Tepung Terigu 5 Kg", qty: 5, price: 95000 }],
-      total: 475000,
-    },
-
-    {
-      id: "OFF-007-2024",
-      date: todayDateStr,
-      time: "16:20",
-      items: [{ name: "Susu Murni 1 Liter", qty: 8, price: 60000 }],
-      total: 480000,
-    },
-
-    {
-      id: "OFF-008-2024",
-      date: todayDateStr,
-      time: "17:00",
-      items: [{ name: "Roti Tawar Premium", qty: 10, price: 45000 }],
-      total: 450000,
-    },
-
-    {
-      id: "OFF-009-2024",
-      date: todayDateStr,
-      time: "17:30",
-      items: [{ name: "Keju Mozarella 500gr", qty: 4, price: 150000 }],
-      total: 600000,
-    },
-
-    {
-      id: "OFF-010-2024",
-      date: todayDateStr,
-      time: "18:00",
-      items: [{ name: "Mentega 200gr", qty: 7, price: 65000 }],
-      total: 455000,
-    },
-  ];
+    fetchData();
+  }, [fetchOnlineOrders, fetchOfflineOrders]);
 
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
-    const day = date.getDate();
     const monthNames = [
       "Jan",
       "Feb",
@@ -210,15 +103,34 @@ export default function SalesReportPage() {
       "Nov",
       "Des",
     ];
-    const month = monthNames[date.getMonth()];
-    const year = date.getFullYear();
-    return `${day} ${month} ${year}`;
+    return `${date.getDate()} ${
+      monthNames[date.getMonth()]
+    } ${date.getFullYear()}`;
   };
 
-  // FILTER FUNCTION
-  const filterOrders = (orders) => {
+ const formatCurrency = (num) => {
+  const value = typeof num === 'number' ? num : 0;
+  return "Rp " + value.toLocaleString("id-ID");
+};
+
+  const getTimeFromDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleTimeString("id-ID", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const filterOrders = (orders, orderType = "all") => {
     return orders.filter((order) => {
-      const orderDate = new Date(order.date);
+      // Filter STATUS: Exclude pending & cancelled untuk ONLINE orders
+      if (orderType === "online") {
+        if (order.status === "pending" || order.status === "cancelled") {
+          return false;
+        }
+      }
+
+      const orderDate = new Date(order.createdAt || order.date);
       const orderDateOnly = new Date(
         orderDate.getFullYear(),
         orderDate.getMonth(),
@@ -253,14 +165,14 @@ export default function SalesReportPage() {
             String(val).toLowerCase().includes(searchQuery.toLowerCase())
           )
         : true;
+
       return afterStart && beforeEnd && matchesSearch;
     });
   };
 
-  const filteredOnlineOrders = filterOrders(onlineOrders);
-  const filteredOfflineOrders = filterOrders(offlineOrders);
+  const filteredOnlineOrders = filterOrders(onlineOrders, "online");
+  const filteredOfflineOrders = filterOrders(offlineOrders, "offline");
 
-  // Display limited or full data
   const displayOnlineOrders = showAllOnlineOrders
     ? filteredOnlineOrders
     : filteredOnlineOrders.slice(0, 5);
@@ -268,30 +180,46 @@ export default function SalesReportPage() {
     ? filteredOfflineOrders
     : filteredOfflineOrders.slice(0, 5);
 
-  // Calculate total revenue
+  // Debug logging
+  useEffect(() => {
+    console.log("Online Orders:", onlineOrders);
+    console.log("Offline Orders:", offlineOrders);
+    console.log("Loading:", loading);
+    console.log("Error:", error);
+  }, [onlineOrders, offlineOrders, loading, error]);
+
   const calculateTotal = (orders) => {
     return orders.reduce((sum, order) => {
       let total = 0;
-      if (typeof order.total === "string") {
-        total = parseInt(order.total.replace(/\D/g, "")) || 0;
-      } else {
-        total = order.total || 0;
+      if (typeof order.totalPrice === "number") {
+        total = order.totalPrice;
+      } else if (typeof order.totalPrice === "string") {
+        total = parseInt(order.totalPrice.replace(/\D/g, "")) || 0;
       }
       return sum + total;
     }, 0);
   };
 
-  // Calculate today's data (not affected by filter)
   const getTodayData = () => {
     const today = new Date();
     const todayStr = `${today.getFullYear()}-${String(
       today.getMonth() + 1
     ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
-    const todayOnline = onlineOrders.filter((order) => order.date === todayStr);
-    const todayOffline = offlineOrders.filter(
-      (order) => order.date === todayStr
-    );
+    // Filter online orders: exclude pending & cancelled
+    const todayOnline = onlineOrders.filter((order) => {
+      const orderDate = new Date(order.createdAt).toISOString().split("T")[0];
+      const isToday = orderDate === todayStr;
+      const isValidStatus =
+        order.status !== "pending" && order.status !== "cancelled";
+      return isToday && isValidStatus;
+    });
+
+    const todayOffline = offlineOrders.filter((order) => {
+      const orderDate = new Date(order.createdAt).toISOString().split("T")[0];
+      return orderDate === todayStr;
+    });
+
     const todayRevenue =
       calculateTotal(todayOnline) + calculateTotal(todayOffline);
 
@@ -303,10 +231,6 @@ export default function SalesReportPage() {
   };
 
   const todayData = getTodayData();
-
-  const formatCurrency = (num) => {
-    return "Rp " + num.toLocaleString("id-ID");
-  };
 
   const handleExportPDF = () => {
     try {
@@ -350,17 +274,16 @@ export default function SalesReportPage() {
       );
       yPosition += 15;
 
-      // Online Orders Header
+      // Online Orders
       doc.setFontSize(11);
       doc.text("Pesanan Online", 10, yPosition);
       yPosition += 8;
 
-      // Online Orders Table Header
       doc.setFontSize(9);
       doc.setFillColor(34, 197, 94);
       doc.setTextColor(255, 255, 255);
-      const onlineHeaders = ["ID", "Pembeli", "Produk", "Total", "Status"];
-      const colWidths = [25, 30, 50, 30, 35];
+      const onlineHeaders = ["ID", "Produk", "Qty", "Total", "Status"];
+      const colWidths = [30, 60, 20, 35, 35];
       let xPos = 10;
 
       onlineHeaders.forEach((header, idx) => {
@@ -372,14 +295,14 @@ export default function SalesReportPage() {
       yPosition += 10;
       doc.setTextColor(0, 0, 0);
 
-      // Online Orders Data
       displayOnlineOrders.forEach((order) => {
         xPos = 10;
+        const itemCount = order.items?.length || 0;
         const rowData = [
-          order.id,
-          order.buyer,
-          order.products.split(",")[0].trim(),
-          order.total,
+          order.orderId || order._id, // ID pesanan penuh
+          order.items?.[0]?.product?.name || "N/A",
+          itemCount.toString(),
+          formatCurrency(order.totalPrice),
           order.status,
         ];
 
@@ -400,17 +323,16 @@ export default function SalesReportPage() {
 
       yPosition += 10;
 
-      // Offline Orders Header
+      // Offline Orders
       doc.setFontSize(11);
       doc.text("Transaksi Offline", 10, yPosition);
       yPosition += 8;
 
-      // Offline Orders Table Header
       doc.setFontSize(9);
       doc.setFillColor(34, 197, 94);
       doc.setTextColor(255, 255, 255);
       const offlineHeaders = ["ID", "Produk", "Jumlah", "Total"];
-      const offlineColWidths = [30, 80, 25, 40];
+      const offlineColWidths = [30, 80, 25, 45];
       xPos = 10;
 
       offlineHeaders.forEach((header, idx) => {
@@ -424,15 +346,16 @@ export default function SalesReportPage() {
       yPosition += 10;
       doc.setTextColor(0, 0, 0);
 
-      // Offline Orders Data
       displayOfflineOrders.forEach((order) => {
-        const totalItems = order.items.reduce((sum, item) => sum + item.qty, 0);
+        const totalItems =
+          order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) ||
+          0;
         xPos = 10;
         const rowData = [
-          order.id,
-          order.items.map((i) => i.name).join(", "),
+          order.orderId || order._id, // ID pesanan penuh
+          order.items?.[0]?.product?.name || "N/A",
           totalItems.toString(),
-          `Rp ${order.total.toLocaleString("id-ID")}`,
+          formatCurrency(order.totalPrice),
         ];
 
         rowData.forEach((data, idx) => {
@@ -450,7 +373,6 @@ export default function SalesReportPage() {
         }
       });
 
-      // Save PDF
       const filename = `Laporan_Penjualan_${
         today.toISOString().split("T")[0]
       }.pdf`;
@@ -461,10 +383,87 @@ export default function SalesReportPage() {
     }
   };
 
-  // Handle view detail untuk online orders
   const handleViewOnlineOrderDetail = (orderId) => {
     navigate(`/seller/order-online`, { state: { selectedOrderId: orderId } });
   };
+
+  const getStatusBadge = (status) => {
+    const statusConfig = {
+      pending: {
+        bg: "bg-gray-100",
+        text: "text-gray-700",
+        border: "border-gray-300",
+        label: "Pending",
+      },
+      paid: {
+        bg: "bg-orange-100",
+        text: "text-orange-700",
+        border: "border-orange-300",
+        label: "Dibayar",
+      },
+      delivered: {
+        bg: "bg-blue-100",
+        text: "text-blue-700",
+        border: "border-blue-300",
+        label: "Dikirim",
+      },
+      completed: {
+        bg: "bg-green-100",
+        text: "text-green-700",
+        border: "border-green-300",
+        label: "Selesai",
+      },
+      cancelled: {
+        bg: "bg-red-100",
+        text: "text-red-700",
+        border: "border-red-300",
+        label: "Dibatalkan",
+      },
+      failed: {
+        bg: "bg-red-100",
+        text: "text-red-700",
+        border: "border-red-300",
+        label: "Gagal",
+      },
+    };
+
+    const config = statusConfig[status] || statusConfig.pending;
+
+    return (
+      <span
+        className={`px-3 py-1 rounded-lg text-xs font-medium ${config.bg} ${config.text} border ${config.border}`}
+      >
+        {config.label}
+      </span>
+    );
+  };
+
+  if (loading && onlineOrders.length === 0 && offlineOrders.length === 0) {
+    return (
+      <div className="w-full min-h-screen bg-gray-50 p-2 pt-14 md:pt-4 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+          <p className="text-neutral-600">Memuat data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !localStorage.getItem("token")) {
+    return (
+      <div className="w-full min-h-screen bg-gray-50 p-2 pt-14 md:pt-4 flex items-center justify-center">
+        <div className="text-center bg-white p-8 rounded-2xl shadow-sm border border-neutral-200">
+          <p className="text-red-600 mb-4">Anda belum login</p>
+          <button
+            onClick={() => navigate("/login")}
+            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+          >
+            Login Sekarang
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-screen bg-gray-50 p-2 pt-14 md:pt-4">
@@ -575,98 +574,72 @@ export default function SalesReportPage() {
               <thead className="bg-neutral-100 text-neutral-700">
                 <tr>
                   <th className="px-2 py-1.5 text-center border-b border-r border-neutral-300 w-[130px] text-xs">
-                    ID TRANSAKSI
+                    Id Pesanan
                   </th>
                   <th className="px-2 py-1.5 text-center border-b border-r border-neutral-300 w-[110px] text-xs">
-                    WAKTU
+                    Waktu
                   </th>
                   <th className="px-2 py-1.5 text-center border-b border-r border-neutral-300 w-[120px] text-xs">
-                    NAMA PEMBELI
-                  </th>
-                  <th className="px-2 py-1.5 text-center border-b border-r border-neutral-300 w-[140px] text-xs">
-                    PRODUK
+                    Produk
                   </th>
                   <th className="px-2 py-1.5 text-center border-b border-r border-neutral-300 w-[100px] text-xs">
-                    TOTAL
+                    Jumlah <span>(pcs)</span>
+                  </th>
+                  <th className="px-2 py-1.5 text-center border-b border-r border-neutral-300 w-[100px] text-xs">
+                    Total
                   </th>
                   <th className="px-2 py-1.5 text-center border-b border-r border-neutral-300 w-[130px] text-xs">
-                    STATUS
+                    Status
                   </th>
                   <th className="px-2 py-1.5 text-center border-b border-neutral-300 w-[100px] text-xs">
-                    AKSI
+                    Aksi
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {displayOnlineOrders.length > 0 ? (
-                  displayOnlineOrders.map((order, idx) => {
-                    const firstProduct = order.products.split(",")[0].trim();
-                    const hasMore = order.products.includes(",");
-                    return (
-                      <tr key={idx} className="border-b border-neutral-300">
-                        <td className="px-2 py-1.5 truncate border-r border-neutral-300 text-xs text-center">
-                          {order.id}
-                        </td>
-                        <td className="px-2 py-1.5 border-r border-neutral-300 text-center text-xs">
-                          <span className="text-[10px] block">
-                            {formatDate(order.date)}
-                          </span>
-                          <span className="text-[10px] text-neutral-500 block">
-                            {order.time}
-                          </span>
-                        </td>
-                        <td className="px-2 py-1.5 truncate border-r border-neutral-300 text-xs">
-                          {order.buyer}
-                        </td>
-                        <td
-                          className="px-2 py-1.5 border-r border-neutral-300 text-xs"
-                          title={order.products}
+                  displayOnlineOrders.map((order, idx) => (
+                    <tr key={idx} className="border-b border-neutral-300">
+                      <td className="px-2 py-1.5 border-r border-neutral-300 text-xs text-center">
+                        {order.orderId || order._id}
+                      </td>
+                      <td className="px-2 py-1.5 border-r border-neutral-300 text-center text-xs">
+                        <span className="text-[10px] block">
+                          {formatDate(order.createdAt)}
+                        </span>
+                        <span className="text-[10px] text-neutral-500 block">
+                          {getTimeFromDate(order.createdAt)}
+                        </span>
+                      </td>
+                      <td className="px-2 py-1.5 truncate border-r border-neutral-300 text-xs">
+                        {order.items?.[0]?.product?.name || "N/A"}
+                      </td>
+                      <td className="px-2 py-1.5 truncate border-r border-neutral-300 text-xs text-center">
+                        {order.items?.length || 0}
+                      </td>
+                      <td className="px-2 py-1.5 truncate border-r border-neutral-300 text-xs">
+                        {formatCurrency(order.totalPrice)}
+                      </td>
+                      <td className="px-2 py-1.5 border-r border-neutral-300 whitespace-nowrap text-center">
+                        {getStatusBadge(order.status)}
+                      </td>
+                      <td className="px-2 py-1.5 text-center">
+                        <button
+                          onClick={() => handleViewOnlineOrderDetail(order._id)}
+                          className="px-3 py-1.5 border border-green-300 rounded-lg text-green-700 text-xs font-medium whitespace-nowrap hover:bg-green-50 transition-colors"
                         >
-                          <span className="truncate block">
-                            {firstProduct}
-                            {hasMore ? "..." : ""}
-                          </span>
-                        </td>
-                        <td className="px-2 py-1.5 truncate border-r border-neutral-300 text-xs">
-                          {order.total}
-                        </td>
-                        <td className="px-2 py-1.5 border-r border-neutral-300 whitespace-nowrap text-center">
-                          {order.status === "Selesai" && (
-                            <span className="px-1.5 py-0.5 rounded-lg text-[10px] bg-green-100 text-green-700 border border-green-300">
-                              Selesai
-                            </span>
-                          )}
-                          {order.status === "Dibayar" && (
-                            <span className="px-1.5 py-0.5 rounded-lg text-[10px] bg-yellow-100 text-yellow-700 border border-yellow-300">
-                              Dibayar
-                            </span>
-                          )}
-                          {order.status === "Dikirim" && (
-                            <span className="px-1.5 py-0.5 rounded-lg text-[10px] bg-blue-100 text-blue-700 border border-blue-300">
-                              Dikirim
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-2 py-1.5 text-center">
-                          <button
-                            onClick={() =>
-                              handleViewOnlineOrderDetail(order.id)
-                            }
-                            className="px-2 py-0.5 border border-green-300 rounded-lg text-green-700 text-[10px] whitespace-nowrap hover:bg-green-50"
-                          >
-                            Lihat Detail
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
+                          Lihat Detail
+                        </button>
+                      </td>
+                    </tr>
+                  ))
                 ) : (
                   <tr>
                     <td
-                      colSpan="6"
+                      colSpan="7"
                       className="px-2 py-4 text-center text-neutral-500"
                     >
-                      Tidak ada data yang sesuai
+                      Tidak ada data
                     </td>
                   </tr>
                 )}
@@ -683,38 +656,24 @@ export default function SalesReportPage() {
                   className="border border-neutral-200 rounded-lg p-4 hover:shadow-md transition"
                 >
                   <div className="flex justify-between mb-2">
-                    <span className="text-xs text-neutral-500 text-center">
-                      {order.id}
+                    <span className="text-xs text-neutral-500">
+                      {order.orderId || order._id}
                     </span>
-                    {order.status === "Selesai" && (
-                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                        Selesai
-                      </span>
-                    )}
-                    {order.status === "Dibayar" && (
-                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">
-                        Dibayar
-                      </span>
-                    )}
-                    {order.status === "Dikirim" && (
-                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                        Dikirim
-                      </span>
-                    )}
+                    {getStatusBadge(order.status)}
                   </div>
                   <p className="font-semibold text-neutral-900">
-                    {order.buyer}
+                    {order.items?.[0]?.product?.name || "N/A"}
                   </p>
                   <p className="text-sm text-neutral-600 mb-2">
-                    {order.products.split(",")[0]}
+                    {order.items?.length || 0} item
                   </p>
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-neutral-900">
-                      {order.total}
+                      {formatCurrency(order.totalPrice)}
                     </span>
                     <button
-                      onClick={() => handleViewOnlineOrderDetail(order.id)}
-                      className="px-2 py-1 text-green-600 border border-green-300 rounded text-xs font-medium hover:bg-green-50"
+                      onClick={() => handleViewOnlineOrderDetail(order._id)}
+                      className="px-3 py-1.5 text-green-600 border border-green-300 rounded-lg text-xs font-medium hover:bg-green-50 transition-colors"
                     >
                       Detail
                     </button>
@@ -750,64 +709,60 @@ export default function SalesReportPage() {
               <thead className="bg-neutral-100 text-neutral-700">
                 <tr>
                   <th className="px-2 py-1.5 text-center border-b border-r border-neutral-300 w-[130px] text-xs">
-                    ID TRANSAKSI
+                    Id Pesanan
                   </th>
                   <th className="px-2 py-1.5 text-center border-b border-r border-neutral-300 w-[110px] text-xs">
-                    TANGGAL
+                    Tanggal
                   </th>
                   <th className="px-2 py-1.5 text-center border-b border-r border-neutral-300 w-[180px] text-xs">
-                    PRODUK
+                    Produk
                   </th>
                   <th className="px-2 py-1.5 text-center border-b border-r border-neutral-300 w-[100px] text-xs">
-                    JUMLAH ITEM
+                    Jumlah <span>(pcs)</span>
                   </th>
                   <th className="px-2 py-1.5 text-center border-b border-r border-neutral-300 w-[110px] text-xs">
-                    HARGA SATUAN
-                  </th>
-                  <th className="px-2 py-1.5 text-center border-b border-r border-neutral-300 w-[100px] text-xs">
-                    TOTAL
+                    Total
                   </th>
                   <th className="px-2 py-1.5 text-center border-b border-neutral-300 w-[100px] text-xs">
-                    AKSI
+                    Aksi
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {displayOfflineOrders.length > 0 ? (
                   displayOfflineOrders.map((order, idx) => {
-                    const firstItem = order.items[0];
-                    const totalItems = order.items.reduce(
-                      (sum, item) => sum + item.qty,
-                      0
-                    );
+                    const totalItems =
+                      order.items?.reduce(
+                        (sum, item) => sum + (item.quantity || 0),
+                        0
+                      ) || 0;
                     return (
                       <tr key={idx} className="border-b border-neutral-300">
-                        <td className="px-2 py-1.5 truncate border-r border-neutral-300 text-xs text-center">
-                          {order.id}
+                        <td className="px-2 py-1.5 border-r border-neutral-300 text-xs text-center">
+                          {order.orderId || order._id}
                         </td>
                         <td className="px-2 py-1.5 border-r border-neutral-300 text-center text-xs">
-                          {formatDate(order.date)}
+                          {formatDate(order.createdAt)}
                         </td>
                         <td
                           className="px-2 py-1.5 truncate border-r border-neutral-300 text-xs"
-                          title={order.items.map((i) => i.name).join(", ")}
+                          title={order.items
+                            ?.map((i) => i.product?.name)
+                            .join(", ")}
                         >
-                          {firstItem.name}
-                          {order.items.length > 1 ? "..." : ""}
+                          {order.items?.[0]?.product?.name || "N/A"}
+                          {order.items?.length > 1 ? "..." : ""}
                         </td>
                         <td className="px-2 py-1.5 truncate border-r border-neutral-300 text-xs text-center">
                           {totalItems}
                         </td>
                         <td className="px-2 py-1.5 truncate border-r border-neutral-300 text-xs">
-                          Rp {firstItem.price.toLocaleString("id-ID")}
-                        </td>
-                        <td className="px-2 py-1.5 truncate border-r border-neutral-300 text-xs">
-                          Rp {order.total.toLocaleString("id-ID")}
+                          {formatCurrency(order.totalPrice)}
                         </td>
                         <td className="px-2 py-1.5 text-center">
                           <button
                             onClick={() => setSelectedOfflineOrder(order)}
-                            className="px-2 py-0.5 border border-green-300 rounded-lg text-green-700 text-[10px] whitespace-nowrap hover:bg-green-50"
+                            className="px-3 py-1.5 border border-green-300 rounded-lg text-green-700 text-xs font-medium whitespace-nowrap hover:bg-green-50 transition-colors"
                           >
                             Lihat Detail
                           </button>
@@ -818,10 +773,10 @@ export default function SalesReportPage() {
                 ) : (
                   <tr>
                     <td
-                      colSpan="7"
+                      colSpan="6"
                       className="px-2 py-4 text-center text-neutral-500"
                     >
-                      Tidak ada data yang sesuai
+                      Tidak ada data
                     </td>
                   </tr>
                 )}
@@ -833,38 +788,38 @@ export default function SalesReportPage() {
           <div className="block md:hidden space-y-3">
             {displayOfflineOrders.length > 0 ? (
               displayOfflineOrders.map((order, idx) => {
-                const firstItem = order.items[0];
-                const totalItems = order.items.reduce(
-                  (sum, item) => sum + item.qty,
-                  0
-                );
+                const totalItems =
+                  order.items?.reduce(
+                    (sum, item) => sum + (item.quantity || 0),
+                    0
+                  ) || 0;
                 return (
                   <div
                     key={idx}
                     className="border border-neutral-200 rounded-lg p-4 hover:shadow-md transition"
                   >
                     <div className="flex justify-between mb-2">
-                      <span className="text-xs text-neutral-500 text-center">
-                        {order.id}
-                      </span>
                       <span className="text-xs text-neutral-500">
-                        {formatDate(order.date)}
+                        {order.orderId || order._id}
+                      </span>
+                      <span className="text-xs text-neutral-600">
+                        {formatDate(order.createdAt)}
                       </span>
                     </div>
-                    <p className="font-semibold text-neutral-900 mb-1">
-                      {firstItem.name}
-                      {order.items.length > 1 ? " & lainnya" : ""}
+                    <p className="font-semibold text-neutral-900">
+                      {order.items?.[0]?.product?.name || "N/A"}
+                      {order.items?.length > 1 ? "..." : ""}
                     </p>
                     <p className="text-sm text-neutral-600 mb-2">
-                      {totalItems} pcs
+                      {totalItems} item
                     </p>
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-neutral-900">
-                        Rp {order.total.toLocaleString("id-ID")}
+                        {formatCurrency(order.totalPrice)}
                       </span>
                       <button
                         onClick={() => setSelectedOfflineOrder(order)}
-                        className="px-2 py-1 text-green-600 border border-green-300 rounded text-xs font-medium hover:bg-green-50"
+                        className="px-3 py-1.5 text-green-600 border border-green-300 rounded-lg text-xs font-medium hover:bg-green-50 transition-colors"
                       >
                         Detail
                       </button>
@@ -879,13 +834,14 @@ export default function SalesReportPage() {
             )}
           </div>
         </section>
+
+        {/* Modal */}
+        <OfflineOrderDetailModal
+          order={selectedOfflineOrder}
+          onClose={() => setSelectedOfflineOrder(null)}
+          formatDate={formatDate}
+        />
       </div>
-      {/* Modal */}
-      <OfflineOrderDetailModal
-        order={selectedOfflineOrder}
-        onClose={() => setSelectedOfflineOrder(null)}
-        formatDate={formatDate}
-      />
     </div>
   );
 }

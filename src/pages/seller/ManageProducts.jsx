@@ -1,43 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiPlus } from "react-icons/fi";
 import Button from "../../components/Button";
 import ProductModal from "../../components/ProductModal";
+import useProductStore from "../../stores/useProductStore";
+import axios from "axios";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function ManageProducts() {
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: "Indomie Goreng Original",
-      category: "Makanan",
-      stock: 100,
-      price: 4000,
-      images: [{ id: "https://picsum.photos/id/101/200/200", file: null }],
-    },
-    {
-      id: 2,
-      name: "Aqua 600ml",
-      category: "Minuman",
-      stock: 50,
-      price: 3000,
-      images: [{ id: "https://picsum.photos/id/20/200/200", file: null }],
-    },
-    {
-      id: 3,
-      name: "Sabun Lifebuoy",
-      category: "Kebersihan",
-      stock: 50,
-      price: 5000,
-      images: [{ id: "https://picsum.photos/id/29/200/200", file: null }],
-    },
-    {
-      id: 4,
-      name: "Telur 1/4 Kg",
-      category: "Sembako",
-      stock: 50,
-      price: 8000,
-      images: [{ id: "https://picsum.photos/id/102/200/200", file: null }],
-    },
-  ]);
+  const { products, loading, error, fetchProducts } = useProductStore();
 
   // MODAL STATES
   const [openAdd, setOpenAdd] = useState(false);
@@ -46,19 +17,68 @@ export default function ManageProducts() {
 
   const [selected, setSelected] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [localError, setLocalError] = useState(null);
+
+  // Fetch products on mount
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  // Clear error after 5 seconds
+  useEffect(() => {
+    if (localError) {
+      const timer = setTimeout(() => {
+        setLocalError(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [localError]);
 
   // ADD PRODUCT
-  const handleAdd = (data) => {
-    const newProduct = {
-      id: Date.now(),
-      name: data.name,
-      category: data.category,
-      stock: Number(data.stock),
-      price: Number(data.price),
-      images: data.images,
-    };
-    setProducts([...products, newProduct]);
-    setOpenAdd(false);
+  const handleAdd = async (data) => {
+    setIsSubmitting(true);
+    setLocalError(null);
+
+    try {
+      const token = localStorage.getItem("token");
+      const formData = new FormData();
+
+      formData.append("name", data.name);
+      formData.append("description", data.description || "");
+      formData.append("price", data.price);
+      formData.append("stock", data.stock);
+      formData.append("category", data.category);
+
+      // Add images
+      if (data.images && data.images.length > 0) {
+        data.images.forEach((img) => {
+          if (img.file) {
+            formData.append("images", img.file);
+          }
+        });
+      }
+
+      const res = await axios.post(`${API_URL}/api/products`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (res.data?.success || res.data?.data) {
+        setOpenAdd(false);
+        fetchProducts(); // Refresh list
+        alert("Produk berhasil ditambahkan!");
+      } else {
+        setLocalError(res.data?.message || res.data?.msg || "Gagal membuat produk");
+      }
+    } catch (err) {
+      console.error("Error creating product:", err);
+      setLocalError(err.response?.data?.message || err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // OPEN EDIT MODAL
@@ -68,21 +88,53 @@ export default function ManageProducts() {
   };
 
   // SUBMIT EDIT
-  const handleEdit = (data) => {
-    const updated = products.map((p) =>
-      p.id === selected.id
-        ? {
-            ...p,
-            name: data.name,
-            category: data.category,
-            stock: Number(data.stock),
-            price: Number(data.price),
-            images: data.images,
+  const handleEdit = async (data) => {
+    setIsSubmitting(true);
+    setLocalError(null);
+
+    try {
+      const token = localStorage.getItem("token");
+      const formData = new FormData();
+
+      formData.append("name", data.name);
+      formData.append("description", data.description || "");
+      formData.append("price", data.price);
+      formData.append("stock", data.stock);
+      formData.append("category", data.category);
+
+      // Add new images
+      if (data.images && data.images.length > 0) {
+        data.images.forEach((img) => {
+          if (img.file) {
+            formData.append("images", img.file);
           }
-        : p
-    );
-    setProducts(updated);
-    setOpenEdit(false);
+        });
+      }
+
+      const res = await axios.put(
+        `${API_URL}/api/products/${selected._id}`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (res.data?.success || res.data?.data) {
+        setOpenEdit(false);
+        fetchProducts(); // Refresh list
+        alert("Produk berhasil diupdate!");
+      } else {
+        setLocalError(res.data?.message || res.data?.msg || "Gagal update produk");
+      }
+    } catch (err) {
+      console.error("Error updating product:", err);
+      setLocalError(err.response?.data?.message || err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // OPEN DELETE
@@ -92,9 +144,41 @@ export default function ManageProducts() {
   };
 
   // SUBMIT DELETE
-  const handleDelete = () => {
-    setProducts(products.filter((p) => p.id !== deleteTarget.id));
-    setOpenDelete(false);
+  const handleDelete = async () => {
+    setIsSubmitting(true);
+    setLocalError(null);
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.delete(
+        `${API_URL}/api/products/${deleteTarget._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (res.data?.success || res.status === 200) {
+        setOpenDelete(false);
+        fetchProducts(); // Refresh list
+        alert("Produk berhasil dihapus!");
+      } else {
+        setLocalError(res.data?.message || res.data?.msg || "Gagal hapus produk");
+      }
+    } catch (err) {
+      console.error("Error deleting product:", err);
+      setLocalError(err.response?.data?.message || err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Helper to get image URL
+// Helper to get image URL
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return "https://via.placeholder.com/200";
+    if (imagePath.startsWith("http")) return imagePath;
+    return `${API_URL}/public/products/${imagePath}`;
   };
 
   return (
@@ -104,90 +188,124 @@ export default function ManageProducts() {
         Kelola Produk
       </h1>
 
+      {/* ERROR ALERT */}
+      {(error || localError) && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+          <p className="text-sm">{error || localError}</p>
+        </div>
+      )}
+
       <div className="bg-white rounded-xl border border-neutral-200 shadow-sm p-4 sm:p-5 md:p-6">
         {/* HEADER */}
         <div className="flex items-center justify-between mb-4 flex-nowrap">
-  <h2 className="text-sm md:text-lg font-semibold text-neutral-800 truncate">
-    Daftar Produk
-  </h2>
+          <h2 className="text-sm md:text-lg font-semibold text-neutral-800 truncate">
+            Daftar Produk
+          </h2>
 
-  <Button
-    variant="primary"
-    size="sm"
-    className="shrink-0 flex items-center gap-1 px-2 py-1 text-xs lg:text-sm"
-    onClick={() => setOpenAdd(true)}
-  >
-    <FiPlus size={16} />
-    Tambah Produk
-  </Button>
-</div>
+          <Button
+            variant="primary"
+            size="sm"
+            className="shrink-0 flex items-center gap-1 px-2 py-1 text-xs lg:text-sm"
+            onClick={() => setOpenAdd(true)}
+            disabled={loading}
+          >
+            <FiPlus size={16} />
+            Tambah Produk
+          </Button>
+        </div>
 
-
-        {/* PRODUCT LIST */}
-        <div className="flex flex-col gap-3">
-          {products.map((item) => (
-            <div
-              key={item.id}
-              className="bg-neutral-50 border border-neutral-200 rounded-xl p-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3"
+        {/* LOADING STATE */}
+        {loading && products.length === 0 ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+              <p className="text-neutral-600">Memuat produk...</p>
+            </div>
+          </div>
+        ) : products.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-neutral-500">Belum ada produk</p>
+            <Button
+              variant="primary"
+              size="sm"
+              className="mt-4"
+              onClick={() => setOpenAdd(true)}
             >
-              {/* LEFT SIDE: IMAGE + INFO */}
-              <div className="flex flex-1 items-start sm:items-center gap-3 min-w-0">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden bg-[#f9f9f9] shrink-0">
-                  <img
-                    src={item.images[0]?.id}
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+              Tambah Produk Pertama
+            </Button>
+          </div>
+        ) : (
+          /* PRODUCT LIST */
+          <div className="flex flex-col gap-3">
+            {products.map((item) => (
+              <div
+                key={item._id}
+                className="bg-neutral-50 border border-neutral-200 rounded-xl p-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3"
+              >
+                {/* LEFT SIDE: IMAGE + INFO */}
+                <div className="flex flex-1 items-start sm:items-center gap-3 min-w-0">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden bg-[#f9f9f9] shrink-0">
+                    <img
+                      src={getImageUrl(item.images?.[0])}
+                      alt={item.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.src = "https://via.placeholder.com/200";
+                      }}
+                    />
+                  </div>
 
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm sm:text-base truncate">
-                    {item.name}
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base truncate">
+                      {item.name}
+                    </p>
 
-                  {/* CATEGORY + STOCK + PRICE */}
-                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 mt-1 text-xs sm:text-sm">
-                    <span className="bg-green-100 text-green-700 px-2 py-1 rounded-md">
-                      {item.category}
-                    </span>
-
-                    {/* STOCK + PRICE HORIZONTAL */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-neutral-500">
-                        Stok: {item.stock} Pcs
+                    {/* CATEGORY + STOCK + PRICE */}
+                    <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 mt-1 text-xs sm:text-sm">
+                      <span className="bg-green-100 text-green-700 px-2 py-1 rounded-md">
+                        {item.category?.name || item.category || "Uncategorized"}
                       </span>
-                      <span className="text-neutral-400">•</span>
-                      <span className="text-neutral-600">
-                        Rp {item.price.toLocaleString("id-ID")}
-                      </span>
+
+                      {/* STOCK + PRICE HORIZONTAL */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-neutral-500">
+                          Stok: {item.stock} Pcs
+                        </span>
+                        <span className="text-neutral-400">•</span>
+                        <span className="text-neutral-600">
+                          Rp {item.price.toLocaleString("id-ID")}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* RIGHT BUTTONS: RESPONSIVE HORIZONTAL */}
-              <div className="flex items-center gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-green-600 border-green-500 hover:bg-green-50 text-xs px-3 py-1 flex-1 sm:flex-none"
-                  onClick={() => openEditModal(item)}
-                >
-                  Edit
-                </Button>
+                {/* RIGHT BUTTONS: RESPONSIVE HORIZONTAL */}
+                <div className="flex items-center gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-green-600 border-green-500 hover:bg-green-50 text-xs px-3 py-1 flex-1 sm:flex-none"
+                    onClick={() => openEditModal(item)}
+                    disabled={loading || isSubmitting}
+                  >
+                    Edit
+                  </Button>
 
-                <Button
-                  variant="danger"
-                  size="sm"
-                  className="text-xs px-3 py-1 flex-1 sm:flex-none"
-                  onClick={() => openDeleteModal(item)}
-                >
-                  Hapus
-                </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    className="text-xs px-3 py-1 flex-1 sm:flex-none"
+                    onClick={() => openDeleteModal(item)}
+                    disabled={loading || isSubmitting}
+                  >
+                    Hapus
+                  </Button>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ADD MODAL */}
@@ -196,6 +314,7 @@ export default function ManageProducts() {
         mode="add"
         onClose={() => setOpenAdd(false)}
         onSubmit={handleAdd}
+        isSubmitting={isSubmitting}
       />
 
       {/* EDIT MODAL */}
@@ -205,6 +324,7 @@ export default function ManageProducts() {
         initialData={selected}
         onClose={() => setOpenEdit(false)}
         onSubmit={handleEdit}
+        isSubmitting={isSubmitting}
       />
 
       {/* DELETE MODAL */}
@@ -216,16 +336,19 @@ export default function ManageProducts() {
             <div className="flex items-center gap-3 mt-4">
               <div className="w-14 h-14 rounded-lg overflow-hidden bg-neutral-200">
                 <img
-                  src={deleteTarget?.images?.[0]?.id}
+                  src={getImageUrl(deleteTarget?.images?.[0])}
                   alt={deleteTarget?.name}
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.src = "https://via.placeholder.com/200";
+                  }}
                 />
               </div>
 
               <div className="min-w-0">
                 <p className="font-semibold truncate">{deleteTarget?.name}</p>
                 <p className="text-sm text-neutral-500">
-                  {deleteTarget?.category}
+                  {deleteTarget?.category?.name || deleteTarget?.category}
                 </p>
               </div>
             </div>
@@ -243,12 +366,18 @@ export default function ManageProducts() {
                 variant="outline"
                 size="sm"
                 onClick={() => setOpenDelete(false)}
+                disabled={isSubmitting}
               >
                 Batal
               </Button>
 
-              <Button variant="danger" size="sm" onClick={handleDelete}>
-                Hapus
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={handleDelete}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Menghapus..." : "Hapus"}
               </Button>
             </div>
           </div>
