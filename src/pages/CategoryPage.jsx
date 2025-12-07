@@ -5,6 +5,7 @@ import ProductCard from "../components/ProductCard";
 import useProductStore from "../stores/useProductStore";
 
 export default function CategoryPage() {
+  const API_URL = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
   const { categoryName } = useParams();
   const {
@@ -35,6 +36,7 @@ export default function CategoryPage() {
           (p) =>
             p.category?.name?.toLowerCase() === selectedCategory.toLowerCase()
         );
+        
 
   return (
     <div className="w-full pb-52">
@@ -103,7 +105,7 @@ export default function CategoryPage() {
               price={p.price}
               image={
                 p.images?.length > 0
-                  ? `${VITE_API_URL}/public/products/${p.images[0]}`
+                  ? `${API_URL}/public/products/${p.images[0]}`
                   : "https://via.placeholder.com/200"
               }
               stock={p.stock}
