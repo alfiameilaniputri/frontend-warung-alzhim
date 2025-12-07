@@ -78,7 +78,7 @@ export default function HomePage() {
 
       {statusStore?.isActive === false && (
   <div className="p-4 bg-red-100 border border-red-300 text-red-700 rounded-lg">
-    <h2 className="font-semibold">Toko Sedang Tutup</h2>
+    <h2 className="font-semibold">Warung Sedang Tutup</h2>
     <p>Saat ini penjual menonaktifkan warung, transaksi tidak dapat dilakukan.</p>
   </div>
 )}
