@@ -103,7 +103,7 @@ export default function CategoryPage() {
               price={p.price}
               image={
                 p.images?.length > 0
-                  ? `http://localhost:5000/public/products/${p.images[0]}`
+                  ? `${API_URL}/public/products/${p.images[0]}`
                   : "https://via.placeholder.com/200"
               }
               stock={p.stock}
