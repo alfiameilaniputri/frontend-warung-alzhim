@@ -12,6 +12,7 @@ export default function CartPage() {
   const { cartItems, fetchCart, updateCartItem, removeCartItem, loading } = useCartStore();
   const { createOrder } = useOrderStore();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [stockError, setStockError] = useState(null); // State untuk error stok
 
   useEffect(() => {
     fetchCart();
@@ -38,24 +39,54 @@ export default function CartPage() {
     }));
   };
 
-  // UPDATE QTY
+  // UPDATE QTY DENGAN VALIDASI STOK
   const changeQty = (id, qty) => {
     if (qty < 1) return;
+
+    // Cari item untuk validasi stok
+    const item = cartItems.find((cartItem) => cartItem._id === id);
+    const availableStock = item?.productId?.stock || 0;
+
+    // Validasi stok
+    if (qty > availableStock) {
+      setStockError(
+        `Stok tidak mencukupi untuk ${item?.productId?.name}. Stok tersedia: ${availableStock}`
+      );
+      
+      // Auto-clear error setelah 3 detik
+      setTimeout(() => setStockError(null), 3000);
+      return;
+    }
+
+    // Jika valid, update quantity
+    setStockError(null);
     updateCartItem(id, qty);
   };
 
   // DELETE ITEM
   const deleteItem = (id) => {
     removeCartItem(id);
+    setStockError(null);
   };
 
- // LANJUT KE PEMESANAN - Create Order & Navigate
+  // LANJUT KE PEMESANAN - Create Order & Navigate
   const handleProceedToOrder = async () => {
     const selectedCartItems = cartItems.filter((item) => item.selected);
 
     if (selectedCartItems.length === 0) {
       alert("Pilih minimal 1 produk untuk melanjutkan pemesanan");
       return;
+    }
+
+    // Validasi stok untuk semua item terpilih
+    for (const item of selectedCartItems) {
+      const availableStock = item?.productId?.stock || 0;
+      if (item.qty > availableStock) {
+        setStockError(
+          `Stok tidak mencukupi untuk ${item?.productId?.name}. Stok tersedia: ${availableStock}`
+        );
+        return;
+      }
     }
 
     setIsProcessing(true);
@@ -117,6 +148,13 @@ export default function CartPage() {
         </button>
         <h1 className="text-xl font-semibold">Keranjang Belanja</h1>
       </div>
+
+      {/* ERROR ALERT STOK */}
+      {stockError && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+          ⚠️ {stockError}
+        </div>
+      )}
 
       <div className="flex flex-col lg:flex-row gap-6">
         {/* LIST PRODUK */}
