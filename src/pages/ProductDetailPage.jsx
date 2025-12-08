@@ -37,6 +37,7 @@ export default function ProductDetailPage() {
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isBuying, setIsBuying] = useState(false);
+  const [stockError, setStockError] = useState(null); // State untuk error stok
 
   useEffect(() => {
     if (!productId) return;
@@ -56,22 +57,48 @@ export default function ProductDetailPage() {
   const totalReviews = productReviews.length;
 
   const handleDecrease = () => {
-    if (quantity > 1) setQuantity(quantity - 1);
+    if (quantity > 1) {
+      setQuantity(quantity - 1);
+      setStockError(null); // Clear error saat mengubah quantity
+    }
   };
 
   const handleIncrease = () => {
-    if (productDetail && quantity < productDetail.stock)
-      setQuantity(quantity + 1);
+    if (!productDetail) return;
+
+    const availableStock = productDetail.stock || 0;
+
+    // Validasi stok sebelum menambah quantity
+    if (quantity >= availableStock) {
+      setStockError(
+        `Stok tidak mencukupi. Stok tersedia hanya ${availableStock} pcs`
+      );
+      return;
+    }
+
+    setQuantity(quantity + 1);
+    setStockError(null); // Clear error jika berhasil
   };
 
   const handleAddToCart = async () => {
     if (!productDetail || isAddingToCart) return;
+
+    const availableStock = productDetail.stock || 0;
+
+    // Validasi stok sebelum tambah ke cart
+    if (quantity > availableStock) {
+      setStockError(
+        `Stok tidak mencukupi. Stok tersedia hanya ${availableStock} pcs`
+      );
+      return;
+    }
 
     setIsAddingToCart(true);
     try {
       const success = await addCartItem(productDetail, quantity);
 
       if (success) {
+        setStockError(null);
         alert("Produk berhasil ditambahkan ke keranjang!");
         await fetchCart(); // Refresh cart count
       } else {
@@ -88,6 +115,16 @@ export default function ProductDetailPage() {
   const handleBuyNow = async () => {
     if (!productDetail || isBuying) return;
 
+    const availableStock = productDetail.stock || 0;
+
+    // Validasi stok sebelum beli
+    if (quantity > availableStock) {
+      setStockError(
+        `Stok tidak mencukupi. Stok tersedia hanya ${availableStock} pcs`
+      );
+      return;
+    }
+
     setIsBuying(true);
     try {
       // Format sesuai backend: items: [{ productId, quantity }]
@@ -101,7 +138,7 @@ export default function ProductDetailPage() {
       const itemsSelect = [
         {
           productId: {
-            _id : productDetail._id,
+            _id: productDetail._id,
             price: productDetail.price,
             images: productDetail.images,
           },
@@ -114,6 +151,7 @@ export default function ProductDetailPage() {
       if (orderData && orderData.orderId) {
         const selectedItems = itemsSelect;
         console.log("Order created:", itemsSelect);
+        setStockError(null);
         // Redirect ke halaman order
         navigate(`/order/${orderData.orderId}`, { state: { selectedItems } });
       } else {
@@ -151,6 +189,13 @@ export default function ProductDetailPage() {
         </button>
         <h1 className="text-xl font-bold pt-2">Detail Produk</h1>
       </div>
+
+      {/* ERROR ALERT STOK */}
+      {stockError && (
+        <div className="mx-4 mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+          ⚠️ {stockError}
+        </div>
+      )}
 
       {/* WRAPPER */}
       <div className="px-4 py-4 flex flex-col md:flex-row md:gap-6 bg-neutral-100">
@@ -242,7 +287,8 @@ export default function ProductDetailPage() {
               <div className="flex items-center bg-neutral-50 border border-neutral-300 rounded-xl px-4 py-2 gap-6">
                 <button
                   onClick={handleDecrease}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-neutral-100 hover:bg-neutral-200 transition"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-neutral-100 hover:bg-neutral-200 transition disabled:opacity-50"
+                  disabled={quantity <= 1}
                 >
                   <FiMinus />
                 </button>
@@ -251,7 +297,8 @@ export default function ProductDetailPage() {
                 </span>
                 <button
                   onClick={handleIncrease}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-neutral-100 hover:bg-neutral-200 transition"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-neutral-100 hover:bg-neutral-200 transition disabled:opacity-50"
+                  disabled={quantity >= (productDetail.stock || 0)}
                 >
                   <FiPlus />
                 </button>
@@ -265,7 +312,7 @@ export default function ProductDetailPage() {
               variant="outline"
               className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 border-green-500 text-green-600 hover:bg-green-50"
               onClick={handleAddToCart}
-              disabled={isAddingToCart}
+              disabled={isAddingToCart || quantity > (productDetail.stock || 0)}
             >
               <FiPlus size={20} />
               {isAddingToCart ? "Menambahkan..." : "Masukkan Keranjang"}
@@ -275,7 +322,7 @@ export default function ProductDetailPage() {
               variant="primary"
               className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 bg-green-500 text-white hover:bg-green-600"
               onClick={handleBuyNow}
-              disabled={isBuying}
+              disabled={isBuying || quantity > (productDetail.stock || 0)}
             >
               <FiShoppingBag size={20} />
               {isBuying ? "Memproses..." : "Beli Sekarang"}

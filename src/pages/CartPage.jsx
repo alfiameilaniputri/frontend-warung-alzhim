@@ -49,12 +49,13 @@ export default function CartPage() {
 
     // Validasi stok
     if (qty > availableStock) {
+      console.log('stock gk cukup')
       setStockError(
         `Stok tidak mencukupi untuk ${item?.productId?.name}. Stok tersedia: ${availableStock}`
       );
       
       // Auto-clear error setelah 3 detik
-      setTimeout(() => setStockError(null), 3000);
+      // setTimeout(() => setStockError(null), 3000);
       return;
     }
 
