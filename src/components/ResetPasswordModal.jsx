@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { ArrowLeft, Eye, EyeOff, X } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 
-export default function ResetPasswordModal({ onClose, token }) {
+export default function ResetPasswordModal({ token }) {
   const API_URL = import.meta.env.VITE_API_URL;
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -15,9 +15,18 @@ export default function ResetPasswordModal({ onClose, token }) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleBack = () => {
+    window.location.href = "/login";
+  };
+
   const handleSimpan = async () => {
     if (formData.newPassword !== formData.confirmPassword) {
       alert("Kata sandi tidak cocok!");
+      return;
+    }
+
+    if (formData.newPassword.length < 8) {
+      alert("Kata sandi minimal 8 karakter!");
       return;
     }
 
@@ -52,18 +61,13 @@ export default function ResetPasswordModal({ onClose, token }) {
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white w-full max-w-xs sm:max-w-sm rounded-xl p-4 shadow-lg relative">
-        {/* <button
-          onClick={onClose}
-          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-        >
-          <X size={16} />
-        </button> */}
-
+        
         <button
-          onClick={onClose}
-          className="text-gray-600 hover:text-gray-800 mb-3"
+          onClick={handleBack}
+          className="text-gray-600 hover:text-gray-800 mb-3 flex items-center gap-1"
         >
           <ArrowLeft size={18} />
+          <span className="text-xs">Kembali ke Login</span>
         </button>
 
         <div className="flex justify-center mb-3">
