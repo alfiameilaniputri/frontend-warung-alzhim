@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { ArrowLeft, Eye, EyeOff, X } from "lucide-react";
 
-export default function ResetPasswordModal({ onClose }) {
+export default function ResetPasswordModal({ onClose, token }) {
+  const API_URL = import.meta.env.VITE_API_URL;
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -14,16 +15,41 @@ export default function ResetPasswordModal({ onClose }) {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSimpan = () => {
-    console.log("Simpan kata sandi baru:", formData);
+  const handleSimpan = async () => {
+    if (formData.newPassword !== formData.confirmPassword) {
+      alert("Kata sandi tidak cocok!");
+      return;
+    }
+
+    try {
+      // kirim data ke backend
+      const response = await fetch(`${API_URL}/api/auth/reset-password/${token}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          token, // kirim token
+          password: formData.newPassword
+        })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        alert("Kata sandi berhasil diubah!");
+        onClose();
+      } else {
+        alert(data.message || "Terjadi kesalahan.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan saat mengubah kata sandi.");
+    }
   };
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-      {/* MODAL BOX */}
       <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-lg relative animate-fadeIn">
-
-        {/* CLOSE BUTTON */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
@@ -31,7 +57,6 @@ export default function ResetPasswordModal({ onClose }) {
           <X size={22} />
         </button>
 
-        {/* Back Button */}
         <button
           onClick={onClose}
           className="text-gray-600 hover:text-gray-800 mb-8"
@@ -39,7 +64,6 @@ export default function ResetPasswordModal({ onClose }) {
           <ArrowLeft size={24} />
         </button>
 
-        {/* Icon */}
         <div className="flex justify-center mb-6">
           <div className="w-32 h-32 bg-green-500 rounded-full flex items-center justify-center">
             <svg className="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -52,13 +76,11 @@ export default function ResetPasswordModal({ onClose }) {
           </div>
         </div>
 
-        {/* Header */}
         <div className="max-w-xl mx-auto">
           <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
             Kata Sandi Baru
           </h1>
 
-          {/* New Password */}
           <div className="mb-4">
             <label className="block mb-2 font-semibold text-gray-900">
               Kata Sandi Baru<span className="text-red-500">*</span>
@@ -82,7 +104,6 @@ export default function ResetPasswordModal({ onClose }) {
             </div>
           </div>
 
-          {/* Confirm Password */}
           <div className="mb-6">
             <label className="block mb-2 font-semibold text-gray-900">
               Konfirmasi Kata Sandi<span className="text-red-500">*</span>
@@ -106,7 +127,6 @@ export default function ResetPasswordModal({ onClose }) {
             </div>
           </div>
 
-          {/* Submit Button */}
           <button
             onClick={handleSimpan}
             className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg transition duration-200"

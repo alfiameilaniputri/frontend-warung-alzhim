@@ -18,6 +18,7 @@ import CustomerOrderPage from "../pages/CustomerOrderPage";
 import ProfilePage from "../pages/ProfilePage";
 import OrderOnlinePage from "../pages/seller/OderOnlinePage";
 import OfflineTransactionPage from "../pages/seller/OfflineTransactionPage";
+import ResetPasswordPage from "../pages/ResetPasswordPage";
 // Pages seller (contoh)
 import SalesReportPage from "../pages/seller/SalesReportPage";
 import ManageProducts from "../pages/seller/ManageProducts";
@@ -53,6 +54,7 @@ const router = createBrowserRouter([
     children: [
       { path: "login", element: <Login /> },
       { path: "register", element: <Register /> },
+      { path: "reset-password/:token", element: <ResetPasswordPage /> }, 
     ],
   },
 
