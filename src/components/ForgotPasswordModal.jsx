@@ -3,18 +3,39 @@ import { X } from "lucide-react";
 
 export default function ForgotPasswordModal({ isOpen, onClose }) {
   const [email, setEmail] = useState("");
+  const API_URL = import.meta.env.VITE_API_URL;
 
   if (!isOpen) return null;
 
-  const handleKirimReset = () => {
-    console.log("Kirim reset ke:", email);
+  const handleKirimReset = async () => {
+    try {
+      console.log("Mengirim request reset password ke:", email);
+
+      const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+      console.log("Response:", data);
+
+      if (response.ok) {
+        alert("Link reset password telah dikirim ke email Anda.");
+      } else {
+        alert(data.message || "Terjadi kesalahan.");
+      }
+    } catch (error) {
+      console.error("Error fetch:", error);
+      alert("Gagal menghubungi server.");
+    }
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50">
-      <div
-        className="bg-white w-[85%] sm:w-full sm:max-w-sm p-4 rounded-xl shadow-lg relative animate-fadeIn"
-      >
+      <div className="bg-white w-[85%] sm:w-full sm:max-w-sm p-4 rounded-xl shadow-lg relative animate-fadeIn">
         {/* Close Button */}
         <button
           onClick={onClose}
