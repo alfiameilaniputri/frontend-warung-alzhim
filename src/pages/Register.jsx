@@ -41,7 +41,7 @@ export default function RegisterPage() {
     setLoading(false);
 
     if (success) {
-      alert("Registrasi berhasil! Silakan login.");
+      alert("Registrasi berhasil! Silakan Masuk.");
       window.location.href = "/login"; // redirect ke halaman login
     } else {
       setErrorMsg(useAuthStore.getState().error || "Gagal mendaftar");
