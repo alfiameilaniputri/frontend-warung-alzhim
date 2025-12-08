@@ -36,7 +36,6 @@ export default function CategoryPage() {
           (p) =>
             p.category?.name?.toLowerCase() === selectedCategory.toLowerCase()
         );
-        
 
   return (
     <div className="w-full pb-52">
@@ -68,7 +67,7 @@ export default function CategoryPage() {
           <div className="absolute right-0 top-14 bg-white shadow-lg rounded-lg border w-40 z-50">
             {categories.map((cat, index) => (
               <button
-                key={index} // bisa pakai index karena sekarang hanya string nama kategori
+                key={index}
                 onClick={() => {
                   setSelectedCategory(cat);
                   setOpenDropdown(false);
@@ -101,6 +100,7 @@ export default function CategoryPage() {
           filteredProducts.map((p) => (
             <ProductCard
               key={p._id}
+              id={p._id}  // ✅ TAMBAHKAN INI - kirim id produk
               name={p.name}
               price={p.price}
               image={
