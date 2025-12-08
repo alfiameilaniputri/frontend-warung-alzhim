@@ -22,7 +22,6 @@ export default function ResetPasswordModal({ onClose, token }) {
     }
 
     try {
-      // kirim data ke backend
       const response = await fetch(
         `${API_URL}/api/auth/reset-password/${token}`,
         {
@@ -31,7 +30,7 @@ export default function ResetPasswordModal({ onClose, token }) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            token, // kirim token
+            token,
             password: formData.newPassword,
           }),
         }
@@ -51,26 +50,26 @@ export default function ResetPasswordModal({ onClose, token }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-lg relative animate-fadeIn">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white w-full max-w-xs sm:max-w-sm rounded-xl p-4 shadow-lg relative">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
         >
-          <X size={22} />
+          <X size={16} />
         </button>
 
         <button
           onClick={onClose}
-          className="text-gray-600 hover:text-gray-800 mb-8"
+          className="text-gray-600 hover:text-gray-800 mb-3"
         >
-          <ArrowLeft size={24} />
+          <ArrowLeft size={18} />
         </button>
 
-        <div className="flex justify-center mb-6">
-          <div className="w-32 h-32 bg-green-500 rounded-full flex items-center justify-center">
+        <div className="flex justify-center mb-3">
+          <div className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center">
             <svg
-              className="w-16 h-16 text-white"
+              className="w-7 h-7 text-white"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -83,64 +82,62 @@ export default function ResetPasswordModal({ onClose, token }) {
           </div>
         </div>
 
-        <div className="max-w-xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-            Kata Sandi Baru
-          </h1>
+        <h1 className="text-lg font-bold text-gray-900 mb-3 text-center">
+          Kata Sandi Baru
+        </h1>
 
-          <div className="mb-4">
-            <label className="block mb-2 font-semibold text-gray-900">
-              Kata Sandi Baru<span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                name="newPassword"
-                value={formData.newPassword}
-                onChange={handleChange}
-                placeholder="Masukkan Kata Sandi Baru"
-                className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 pr-12 text-base focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
+        <div className="mb-2">
+          <label className="block mb-1 font-semibold text-gray-900 text-xs">
+            Kata Sandi Baru<span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="newPassword"
+              value={formData.newPassword}
+              onChange={handleChange}
+              placeholder="Masukkan Kata Sandi Baru"
+              className="w-full border-2 border-gray-300 rounded-lg px-2.5 py-1.5 pr-9 text-xs focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            >
+              {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+            </button>
           </div>
-
-          <div className="mb-6">
-            <label className="block mb-2 font-semibold text-gray-900">
-              Konfirmasi Kata Sandi<span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder="Masukkan Ulang Kata Sandi"
-                className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 pr-12 text-base focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              >
-                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-          </div>
-
-          <button
-            onClick={handleSimpan}
-            className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg transition duration-200"
-          >
-            Simpan Kata Sandi
-          </button>
         </div>
+
+        <div className="mb-3">
+          <label className="block mb-1 font-semibold text-gray-900 text-xs">
+            Konfirmasi Kata Sandi<span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="Masukkan Ulang Kata Sandi"
+              className="w-full border-2 border-gray-300 rounded-lg px-2.5 py-1.5 pr-9 text-xs focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            >
+              {showConfirmPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+            </button>
+          </div>
+        </div>
+
+        <button
+          onClick={handleSimpan}
+          className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-1.5 rounded-lg transition duration-200 text-xs"
+        >
+          Simpan Kata Sandi
+        </button>
       </div>
     </div>
   );
