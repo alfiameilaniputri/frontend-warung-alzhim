@@ -7,12 +7,12 @@ export default function ResetPasswordModal({ onClose, token }) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
     newPassword: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSimpan = async () => {
@@ -23,21 +23,24 @@ export default function ResetPasswordModal({ onClose, token }) {
 
     try {
       // kirim data ke backend
-      const response = await fetch(`${API_URL}/api/auth/reset-password/${token}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          token, // kirim token
-          password: formData.newPassword
-        })
-      });
+      const response = await fetch(
+        `${API_URL}/api/auth/reset-password/${token}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            token, // kirim token
+            password: formData.newPassword,
+          }),
+        }
+      );
 
       const data = await response.json();
       if (response.ok) {
         alert("Kata sandi berhasil diubah!");
-        onClose();
+        window.location.href = "/login";
       } else {
         alert(data.message || "Terjadi kesalahan.");
       }
@@ -66,7 +69,11 @@ export default function ResetPasswordModal({ onClose, token }) {
 
         <div className="flex justify-center mb-6">
           <div className="w-32 h-32 bg-green-500 rounded-full flex items-center justify-center">
-            <svg className="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <svg
+              className="w-16 h-16 text-white"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
               <path
                 fillRule="evenodd"
                 d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
