@@ -21,7 +21,8 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isPopupOpenDesktop, setIsPopupOpenDesktop] = useState(false);
   const [isPopupOpenMobile, setIsPopupOpenMobile] = useState(false);
-  const [isProfileDropdownDesktop, setIsProfileDropdownDesktop] = useState(false);
+  const [isProfileDropdownDesktop, setIsProfileDropdownDesktop] =
+    useState(false);
   const [isProfileDropdownMobile, setIsProfileDropdownMobile] = useState(false);
 
   const navigate = useNavigate();
@@ -39,7 +40,8 @@ export default function Navbar() {
   const cartCount = cartItems.length;
 
   // NOTIFICATIONS STORE
-  const { notifications, fetchNotifications, readNotification } = useNotificationStore();
+  const { notifications, fetchNotifications, readNotification } =
+    useNotificationStore();
 
   // Load dari localStorage saat pertama kali mount
   useEffect(() => {
@@ -62,10 +64,16 @@ export default function Navbar() {
   // CLOSE POPUPS (DESKTOP)
   useEffect(() => {
     const handler = (e) => {
-      if (bellRefDesktop.current && !bellRefDesktop.current.contains(e.target)) {
+      if (
+        bellRefDesktop.current &&
+        !bellRefDesktop.current.contains(e.target)
+      ) {
         setIsPopupOpenDesktop(false);
       }
-      if (profileRefDesktop.current && !profileRefDesktop.current.contains(e.target)) {
+      if (
+        profileRefDesktop.current &&
+        !profileRefDesktop.current.contains(e.target)
+      ) {
         setIsProfileDropdownDesktop(false);
       }
     };
@@ -79,7 +87,10 @@ export default function Navbar() {
       if (bellRefMobile.current && !bellRefMobile.current.contains(e.target)) {
         setIsPopupOpenMobile(false);
       }
-      if (profileRefMobile.current && !profileRefMobile.current.contains(e.target)) {
+      if (
+        profileRefMobile.current &&
+        !profileRefMobile.current.contains(e.target)
+      ) {
         setIsProfileDropdownMobile(false);
       }
     };
@@ -159,7 +170,11 @@ export default function Navbar() {
           </Link>
 
           {/* SEARCH BAR */}
-          <div className={`flex ${isLoggedIn ? "flex-1 max-w-xl mx-3" : "flex-1 max-w-2xl mx-2"}`}>
+          <div
+            className={`flex ${
+              isLoggedIn ? "flex-1 max-w-xl mx-3" : "flex-1 max-w-2xl mx-2"
+            }`}
+          >
             <div className="relative w-full">
               <input
                 type="text"
@@ -168,7 +183,10 @@ export default function Navbar() {
                 onChange={handleSearchChange}
                 className="w-full bg-neutral-100 border border-neutral-300 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-primary-500"
               />
-              <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-700" size={18} />
+              <FiSearch
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-700"
+                size={18}
+              />
             </div>
           </div>
 
@@ -177,15 +195,22 @@ export default function Navbar() {
             {!isLoggedIn ? (
               <>
                 <Link to="/register">
-                  <Button variant="soft" size="md">Daftar</Button>
+                  <Button variant="soft" size="md">
+                    Daftar
+                  </Button>
                 </Link>
                 <Link to="/login">
-                  <Button variant="primary" size="md">Masuk</Button>
+                  <Button variant="primary" size="md">
+                    Masuk
+                  </Button>
                 </Link>
               </>
             ) : (
               <>
-                <Link to="/cart" className="relative text-primary-700 text-2xl pt-2">
+                <Link
+                  to="/cart"
+                  className="relative text-primary-700 text-2xl pt-2"
+                >
                   <FiShoppingCart />
                   {cartCount > 0 && (
                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-semibold mt-1">
@@ -195,16 +220,19 @@ export default function Navbar() {
                 </Link>
 
                 {/* BELL DESKTOP */}
-                <div ref={bellRefDesktop} className="relative flex items-center pt-2">
+                <div
+                  ref={bellRefDesktop}
+                  className="relative flex items-center pt-2"
+                >
                   <button
                     onClick={() => setIsPopupOpenDesktop((prev) => !prev)}
                     className="text-primary-700 text-2xl hover:opacity-70"
                   >
                     <FiBell />
                   </button>
-                  {notifications.filter(n => !n.isRead).length > 0 && (
+                  {notifications.filter((n) => !n.isRead).length > 0 && (
                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-semibold mt-1">
-                      {notifications.filter(n => !n.isRead).length}
+                      {notifications.filter((n) => !n.isRead).length}
                     </span>
                   )}
                   {isPopupOpenDesktop && (
@@ -239,7 +267,10 @@ export default function Navbar() {
           <div className="flex sm:hidden items-center gap-4 shrink-0">
             {isLoggedIn ? (
               <>
-                <Link to="/cart" className="relative text-primary-700 text-xl flex items-center p-1 mt-2">
+                <Link
+                  to="/cart"
+                  className="relative text-primary-700 text-xl flex items-center p-1 mt-2"
+                >
                   <FiShoppingCart />
                   {cartCount > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 bg-red-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-semibold">
@@ -271,10 +302,17 @@ export default function Navbar() {
                   )}
                 </div>
 
-                {/* PROFILE MOBILE */}
-                <div ref={profileRefMobile} className="relative flex items-center">
+                {/* PROFILE MOBILE - ✅ FIXED */}
+                <div
+                  ref={profileRefMobile}
+                  className="relative flex items-center"
+                >
                   <img
-                    src={user?.avatar || "/avatar.png"}
+                    src={
+                      user?.profileImage
+                        ? `${API_URL}/public/user_profile/${user.profileImage}`
+                        : "/avatar.png"
+                    }
                     alt="User"
                     className="w-8 h-8 rounded-full object-cover cursor-pointer border-2 border-neutral-200"
                     onClick={() => setIsProfileDropdownMobile((prev) => !prev)}
@@ -285,10 +323,14 @@ export default function Navbar() {
             ) : (
               <>
                 <Link to="/register">
-                  <Button size="sm" variant="soft">Daftar</Button>
+                  <Button size="sm" variant="soft">
+                    Daftar
+                  </Button>
                 </Link>
                 <Link to="/login">
-                  <Button size="sm" variant="primary">Masuk</Button>
+                  <Button size="sm" variant="primary">
+                    Masuk
+                  </Button>
                 </Link>
               </>
             )}
