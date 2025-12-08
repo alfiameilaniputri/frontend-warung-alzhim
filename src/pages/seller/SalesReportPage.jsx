@@ -108,10 +108,10 @@ export default function SalesReportPage() {
     } ${date.getFullYear()}`;
   };
 
- const formatCurrency = (num) => {
-  const value = typeof num === 'number' ? num : 0;
-  return "Rp " + value.toLocaleString("id-ID");
-};
+  const formatCurrency = (num) => {
+    const value = typeof num === "number" ? num : 0;
+    return "Rp " + value.toLocaleString("id-ID");
+  };
 
   const getTimeFromDate = (dateStr) => {
     const date = new Date(dateStr);
@@ -611,8 +611,14 @@ export default function SalesReportPage() {
                           {getTimeFromDate(order.createdAt)}
                         </span>
                       </td>
-                      <td className="px-2 py-1.5 truncate border-r border-neutral-300 text-xs">
+                      <td
+                        className="px-2 py-1.5 truncate border-r border-neutral-300 text-xs"
+                        title={order.items
+                          ?.map((i) => i.product?.name)
+                          .join(", ")}
+                      >
                         {order.items?.[0]?.product?.name || "N/A"}
+                        {order.items?.length > 1 ? "..." : ""}
                       </td>
                       <td className="px-2 py-1.5 truncate border-r border-neutral-300 text-xs text-center">
                         {order.items?.length || 0}
@@ -663,6 +669,7 @@ export default function SalesReportPage() {
                   </div>
                   <p className="font-semibold text-neutral-900">
                     {order.items?.[0]?.product?.name || "N/A"}
+                    {order.items?.length > 1 ? "..." : ""}
                   </p>
                   <p className="text-sm text-neutral-600 mb-2">
                     {order.items?.length || 0} item
