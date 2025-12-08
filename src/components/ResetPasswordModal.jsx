@@ -52,12 +52,12 @@ export default function ResetPasswordModal({ onClose, token }) {
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white w-full max-w-xs sm:max-w-sm rounded-xl p-4 shadow-lg relative">
-        <button
+        {/* <button
           onClick={onClose}
           className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
         >
           <X size={16} />
-        </button>
+        </button> */}
 
         <button
           onClick={onClose}
