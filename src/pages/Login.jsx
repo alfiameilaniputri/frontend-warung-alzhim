@@ -39,7 +39,7 @@ export default function LoginPage() {
           const errorMessages = Object.values(response.errors).join("\n");
           alert(`${response.message}\n${errorMessages}`);
         } else {
-          alert(response.message || "Login gagal, cek email/password.");
+          alert(response.message || "Gagal Masuk, cek email/password.");
         }
         return;
       }
@@ -58,11 +58,11 @@ export default function LoginPage() {
       }
 
       fetchNotifications();
-      alert("Login berhasil!");
+      alert("Masuk berhasil!");
 
     } catch (error) {
       console.error("Login error:", error);
-      alert("Terjadi kesalahan saat login. Silakan coba lagi.");
+      alert("Terjadi kesalahan saat Masuk. Silakan coba lagi.");
     }
   };
 
