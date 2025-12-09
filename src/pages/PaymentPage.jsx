@@ -93,7 +93,7 @@ export default function PaymentPage() {
   return (
     <main className="w-full min-h-screen bg-gray-50">
       {/* TOP BAR */}
-      <div className="bg-white shadow-sm sticky top-0 z-10">
+      <div className="sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 lg:px-6 py-4">
           <div className="flex items-center gap-3">
             <button
@@ -111,7 +111,7 @@ export default function PaymentPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* LEFT COLUMN - Midtrans iframe */}
           <div className="lg:col-span-2">
-            <section className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <section className="bg-white rounded-2xl shadow-sm overflow-hidden p-2 lg:p-6">
               {/* Mobile: Full width tanpa batasan, Desktop: max 390px centered */}
               <div className="w-full">
                 {order.redirectUrl ? (
