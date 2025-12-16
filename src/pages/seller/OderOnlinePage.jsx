@@ -19,7 +19,13 @@ export default function OrderOnlinePage() {
 
   // Fetch orders on mount
   useEffect(() => {
-    fetchOnlineOrders();
+    fetchOnlineOrders(); // fetch pertama
+
+    const interval = setInterval(() => {
+      fetchOnlineOrders();
+    }, 5000); // 5 detik
+
+    return () => clearInterval(interval);
   }, [fetchOnlineOrders]);
 
   // Handle highlight from navigation
@@ -45,7 +51,20 @@ export default function OrderOnlinePage() {
   // Format date
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "Mei",
+      "Jun",
+      "Jul",
+      "Agu",
+      "Sep",
+      "Okt",
+      "Nov",
+      "Des",
+    ];
     const day = date.getDate();
     const month = monthNames[date.getMonth()];
     const year = date.getFullYear();
@@ -82,9 +101,12 @@ export default function OrderOnlinePage() {
   // Filter orders by status
   const getFilteredOrders = () => {
     if (selectedStatus === "Semua") return onlineOrders;
-    if (selectedStatus === "Dibayar") return onlineOrders.filter((o) => o.status === "paid");
-    if (selectedStatus === "Dikirim") return onlineOrders.filter((o) => o.status === "delivered");
-    if (selectedStatus === "Selesai") return onlineOrders.filter((o) => o.status === "completed");
+    if (selectedStatus === "Dibayar")
+      return onlineOrders.filter((o) => o.status === "paid");
+    if (selectedStatus === "Dikirim")
+      return onlineOrders.filter((o) => o.status === "delivered");
+    if (selectedStatus === "Selesai")
+      return onlineOrders.filter((o) => o.status === "completed");
     return onlineOrders;
   };
 
@@ -216,7 +238,9 @@ export default function OrderOnlinePage() {
         {/* Empty State */}
         {filteredOrders.length === 0 ? (
           <div className="bg-white rounded-xl p-12 text-center">
-            <p className="text-neutral-500">Tidak ada pesanan {selectedStatus.toLowerCase()}</p>
+            <p className="text-neutral-500">
+              Tidak ada pesanan {selectedStatus.toLowerCase()}
+            </p>
           </div>
         ) : (
           /* Pesanan Cards */
@@ -236,7 +260,8 @@ export default function OrderOnlinePage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start gap-2">
                       <h3 className="font-bold text-neutral-900 mb-1 text-xs md:text-xs lg:text-sm wrap-break-words">
-                        Pesanan #{order._id.slice(0, 8)} – {order.buyer?.name || "Customer"}
+                        Pesanan #{order._id.slice(0, 8)} –{" "}
+                        {order.buyer?.name || "Customer"}
                       </h3>
                       {highlightedOrderId === order._id && !highlightFade && (
                         <span className="px-2 py-0.5 bg-green-500 text-white text-[10px] rounded-full font-semibold shrink-0 animate-pulse">
@@ -246,13 +271,19 @@ export default function OrderOnlinePage() {
                     </div>
                     <div className="flex items-center gap-1.5 text-xs md:text-xs lg:text-xs text-neutral-600 mb-1.5">
                       <span>
-                        {order.items?.length || 0} item • {formatDate(order.createdAt)}
+                        {order.items?.length || 0} item •{" "}
+                        {formatDate(order.createdAt)}
                       </span>
                     </div>
                     {order.buyer?.address && (
                       <div className="flex items-start gap-1.5 text-xs md:text-xs lg:text-xs text-neutral-600 mb-2.5">
-                        <FiMapPin size={13} className="text-red-500 shrink-0 mt-0.5" />
-                        <span className="wrap-break-words">{order.buyer.address}</span>
+                        <FiMapPin
+                          size={13}
+                          className="text-red-500 shrink-0 mt-0.5"
+                        />
+                        <span className="wrap-break-words">
+                          {order.buyer.address}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -288,7 +319,10 @@ export default function OrderOnlinePage() {
                   </p>
                   <div className="space-y-1 md:space-y-1 lg:space-y-1.5 mb-2.5">
                     {order.items?.map((item, idx) => (
-                      <div key={idx} className="flex justify-between text-xs md:text-xs lg:text-xs gap-2">
+                      <div
+                        key={idx}
+                        className="flex justify-between text-xs md:text-xs lg:text-xs gap-2"
+                      >
                         <span className="text-neutral-700 wrap-break-words">
                           {item.product?.name || "Produk"} x{item.quantity}
                         </span>

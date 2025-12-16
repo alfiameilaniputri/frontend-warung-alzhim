@@ -423,7 +423,7 @@ export default function SalesReportPage() {
         bg: "bg-red-100",
         text: "text-red-700",
         border: "border-red-300",
-        label: "Gagal",
+        label: "Dibatalkan",
       },
     };
 

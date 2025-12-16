@@ -125,9 +125,9 @@ export default function ManageProducts() {
       if (res.data?.success || res.data?.data) {
         setOpenEdit(false);
         fetchProducts(); // Refresh list
-        alert("Produk berhasil diupdate!");
+        alert("Produk berhasil diperbarui!");
       } else {
-        setLocalError(res.data?.message || res.data?.msg || "Gagal update produk");
+        setLocalError(res.data?.message || res.data?.msg || "Gagal perbarui produk");
       }
     } catch (err) {
       console.error("Error updating product:", err);

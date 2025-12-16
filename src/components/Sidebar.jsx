@@ -23,7 +23,7 @@ export default function Sidebar() {
     fetchOnlineOrders();
   }, [fetchOnlineOrders]);
 
-  console.log("online order", onlineOrders.length)
+  console.log("online order", onlineOrders)
 
   const isActive = (path) => location.pathname.startsWith(path);
 
@@ -32,7 +32,7 @@ export default function Sidebar() {
     {
       label: "Pesanan Online",
       path: "/seller/order-online",
-      badge: `${onlineOrders.length}`
+      badge: onlineOrders.filter(order => order.status === "paid").length
     },
     { label: "Transaksi Offline", path: "/seller/transaction-offline" },
     { label: "Kelola Produk", path: "/seller/manage-products" },

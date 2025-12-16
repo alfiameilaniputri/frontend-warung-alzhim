@@ -68,7 +68,7 @@ export default function OrderDetailPopup({
           style={{ background: headerColor }}
         >
           <p className="text-xs opacity-90">Order ID</p>
-          <p className="text-xl font-bold">#{orderData._id}</p>
+          <p className="text-xl font-bold">#{orderData.orderId}</p>
           <p className="text-xs opacity-90 mt-1">
             {orderData.createdAt
               ? new Date(orderData.createdAt).toLocaleDateString("id-ID", {
@@ -127,7 +127,7 @@ export default function OrderDetailPopup({
 
                 {/* Review per item - HANYA tampil jika sudah direview */}
                 {item.isReviewed && item.review && (
-                  <div className="mt-3 p-3 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
+                  <div className="mt-3 p-3 bg-linear-to-br from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-base">⭐</span>
                       <p className="text-xs font-bold text-gray-700">
@@ -265,7 +265,7 @@ export default function OrderDetailPopup({
               className="flex-1 py-2.5 text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700"
               onClick={() => {
                 window.open(
-                  `https://wa.me/6285710441934text=Halo, saya ingin bertanya tentang pesanan ${orderData._id}`,
+                  `https://wa.me/6285710441934 text=Halo, saya ingin bertanya tentang pesanan ${orderData._id}`,
                   "_blank"
                 );
               }}

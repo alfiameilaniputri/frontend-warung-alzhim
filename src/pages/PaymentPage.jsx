@@ -139,7 +139,7 @@ export default function PaymentPage() {
             <section className="bg-white rounded-2xl p-6 shadow-sm lg:sticky lg:top-24">
               <h3 className="text-lg font-semibold mb-1">Ringkasan Pesanan</h3>
               <p className="text-xs text-gray-500 mb-4">
-                ID Transaksi: {order._id}
+                ID Transaksi: {order.orderId}
               </p>
 
               {/* Products List */}
