@@ -11,7 +11,9 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({ email: "", password: "" });
 
   const login = useAuthStore((state) => state.login);
-  const fetchNotifications = useNotificationStore((state) => state.fetchNotifications);
+  const fetchNotifications = useNotificationStore(
+    (state) => state.fetchNotifications
+  );
 
   const navigate = useNavigate();
 
@@ -59,7 +61,6 @@ export default function LoginPage() {
 
       fetchNotifications();
       alert("Masuk berhasil!");
-
     } catch (error) {
       console.error("Login error:", error);
       alert("Terjadi kesalahan saat Masuk. Silakan coba lagi.");
@@ -93,13 +94,20 @@ export default function LoginPage() {
         </div>
 
         {/* FORM */}
-        <div className="flex flex-col gap-4 max-w-md mx-auto w-full">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault(); // ⛔ cegah reload
+            handleMasuk(); // ✅ trigger login
+          }}
+          className="flex flex-col gap-4 max-w-md mx-auto w-full"
+        >
           <input
             type="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
             placeholder="Email"
+            required
             className="w-full border-2 border-green-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-green-400"
           />
 
@@ -110,12 +118,14 @@ export default function LoginPage() {
               value={formData.password}
               onChange={handleChange}
               placeholder="Kata sandi"
+              required
               className="w-full border-2 border-green-300 rounded-lg px-3 py-2 pr-10 text-xs focus:outline-none focus:ring-2 focus:ring-green-400"
             />
+
             <button
               type="button"
               onClick={togglePasswordVisibility}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
             >
               {showPassword ? (
                 <AiOutlineEyeInvisible size={16} />
@@ -127,6 +137,7 @@ export default function LoginPage() {
 
           <div className="flex justify-end -mt-2">
             <button
+              type="button"
               onClick={() => setOpenModal(true)}
               className="text-xs text-primary-500 font-semibold hover:underline"
             >
@@ -135,7 +146,7 @@ export default function LoginPage() {
           </div>
 
           <button
-            onClick={handleMasuk}
+            type="submit"
             className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded-lg text-sm"
           >
             Masuk
@@ -150,7 +161,7 @@ export default function LoginPage() {
               Daftar
             </a>
           </p>
-        </div>
+        </form>
       </div>
 
       {/* RIGHT */}

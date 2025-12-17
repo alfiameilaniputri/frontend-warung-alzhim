@@ -5,6 +5,7 @@ import { FaCheck } from "react-icons/fa";
 import { FiChevronLeft } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import useCartStore from "../stores/useCartStore";
+import useAuthStore from "../stores/useAuthStore";
 import useOrderStore from "../stores/useOrderStore";
 
 export default function CartPage() {
@@ -13,6 +14,8 @@ export default function CartPage() {
   const { createOrder } = useOrderStore();
   const [isProcessing, setIsProcessing] = useState(false);
   const [stockError, setStockError] = useState(null); // State untuk error stok
+  const { user } = useAuthStore();
+
 
   useEffect(() => {
     fetchCart();
@@ -70,60 +73,64 @@ export default function CartPage() {
     setStockError(null);
   };
 
-  // LANJUT KE PEMESANAN - Create Order & Navigate
   const handleProceedToOrder = async () => {
-    const selectedCartItems = cartItems.filter((item) => item.selected);
+  const selectedCartItems = cartItems.filter((item) => item.selected);
 
-    if (selectedCartItems.length === 0) {
-      alert("Pilih minimal 1 produk untuk melanjutkan pemesanan");
+  if (selectedCartItems.length === 0) {
+    alert("Pilih minimal 1 produk untuk melanjutkan pemesanan");
+    return;
+  }
+
+  // VALIDASI DATA PENGIRIMAN
+  if (
+    !user ||
+    !user.name?.trim() ||
+    !user.phone_number?.trim() ||
+    !user.address?.trim()
+  ) {
+    alert("Data pengiriman wajib diisi lengkap saat melakukan pemesanan");
+    return;
+  }
+
+  // VALIDASI STOK
+  for (const item of selectedCartItems) {
+    const availableStock = item?.productId?.stock || 0;
+    if (item.qty > availableStock) {
+      setStockError(
+        `Stok tidak mencukupi untuk ${item?.productId?.name}. Stok tersedia: ${availableStock}`
+      );
       return;
     }
+  }
 
-    // Validasi stok untuk semua item terpilih
-    for (const item of selectedCartItems) {
-      const availableStock = item?.productId?.stock || 0;
-      if (item.qty > availableStock) {
-        setStockError(
-          `Stok tidak mencukupi untuk ${item?.productId?.name}. Stok tersedia: ${availableStock}`
-        );
-        return;
+  setIsProcessing(true);
+
+  try {
+    const items = selectedCartItems.map((item) => ({
+      productId: item.productId._id,
+      quantity: item.qty,
+    }));
+
+    const orderData = await createOrder(items);
+
+    if (orderData?.orderId) {
+      for (const item of selectedCartItems) {
+        await removeCartItem(item._id);
       }
+
+      await fetchCart();
+      navigate(`/order/${orderData.orderId}`);
+    } else {
+      alert("Gagal membuat pesanan");
     }
+  } catch (error) {
+    console.error("Error creating order:", error);
+    alert("Terjadi kesalahan saat membuat pesanan");
+  } finally {
+    setIsProcessing(false);
+  }
+};
 
-    setIsProcessing(true);
-
-    try {
-      // Convert cart items ke format backend
-      const items = selectedCartItems.map((item) => ({
-        productId: item.productId._id,
-        quantity: item.qty,
-      }));
-
-      // Create order (status: pending)
-      const orderData = await createOrder(items);
-
-      if (orderData && orderData.orderId) {
-        // HAPUS ITEM YANG SUDAH DI-ORDER DARI CART
-        console.log("Menghapus item dari cart...");
-        for (const item of selectedCartItems) {
-          await removeCartItem(item._id);
-        }
-
-        // Refresh cart setelah hapus
-        await fetchCart();
-
-        // Navigate ke order page dengan orderId
-        navigate(`/order/${orderData.orderId}`);
-      } else {
-        alert("Gagal membuat pesanan");
-      }
-    } catch (error) {
-      console.error("Error creating order:", error);
-      alert("Terjadi kesalahan saat membuat pesanan");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
 
   // SUMMARY
   const selectedItems = cartItems.filter((item) => item.selected);

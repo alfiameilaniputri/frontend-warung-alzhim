@@ -1,0 +1,4 @@
+# 🌐 URL Backend API
+# Alamat backend yang digunakan oleh frontend untuk koneksi ke server
+# Contoh: http://localhost:5000/api atau URL dari server online
+VITE_API_URL=http://localhost:5000/api
