@@ -30,10 +30,11 @@ export default function OrderDetailPopup({
     delivered: "Dikirim",
     completed: "Selesai",
     cancelled: "Dibatalkan",
-    failed: "Gagal"
+    failed: "Gagal",
   };
-  
-  const statusText = orderData.statusText || statusTextMap[orderData.status] || "Pending";
+
+  const statusText =
+    orderData.statusText || statusTextMap[orderData.status] || "Pending";
   const statusKey = (orderData.status || "").toLowerCase();
   const badge = getStatusBadge(orderData.status, orderData.createdAt); // ← FIX: Pass createdAt
   const headerColor = "#10B981";
@@ -84,9 +85,7 @@ export default function OrderDetailPopup({
         <div className="px-5 py-4">
           {/* Status */}
           <p className="text-xs font-semibold text-gray-500 mb-1">Status</p>
-          <p className="font-bold text-gray-900 mb-3 text-base">
-            {statusText}
-          </p>
+          <p className="font-bold text-gray-900 mb-3 text-base">{statusText}</p>
 
           <div className="border-b mb-4"></div>
 
@@ -265,7 +264,9 @@ export default function OrderDetailPopup({
               className="flex-1 py-2.5 text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700"
               onClick={() => {
                 window.open(
-                  `https://wa.me/6285710441934 text=Halo, saya ingin bertanya tentang pesanan ${orderData._id}`,
+                  `https://wa.me/6285710441934?text=${encodeURIComponent(
+                    `Halo, saya ingin bertanya tentang pesanan dengan ID ${orderData.orderId}`
+                  )}`,
                   "_blank"
                 );
               }}
@@ -280,7 +281,8 @@ export default function OrderDetailPopup({
 }
 
 /* Utility badge function */
-function getStatusBadge(status, createdAt) { // ← FIX: Tambah parameter createdAt
+function getStatusBadge(status, createdAt) {
+  // ← FIX: Tambah parameter createdAt
   const statusLower = (status || "").toLowerCase();
 
   switch (statusLower) {
@@ -289,7 +291,7 @@ function getStatusBadge(status, createdAt) { // ← FIX: Tambah parameter create
       if (createdAt) {
         const orderDate = new Date(createdAt);
         const deadline = new Date(orderDate.getTime() + 60 * 60 * 1000);
-        
+
         const hours = deadline.getHours().toString().padStart(2, "0");
         const minutes = deadline.getMinutes().toString().padStart(2, "0");
 
@@ -301,7 +303,7 @@ function getStatusBadge(status, createdAt) { // ← FIX: Tambah parameter create
           text: `Segera selesaikan pembayaran sebelum pukul ${hours}:${minutes} hari ini`,
         };
       }
-      
+
       return {
         bg: "bg-orange-50",
         border: "border-orange-200",
