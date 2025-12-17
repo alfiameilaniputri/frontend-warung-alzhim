@@ -13,8 +13,8 @@ Proyek ini merupakan bagian dari skripsi berjudul:
 > oleh **Alfia Meilani Putri**  
 > Fakultas Ilmu Komputer, Universitas Singaperbangsa Karawang (2025)
 
-Aplikasi ini menyediakan antarmuka pengguna (frontend) berbasis **React.js** yang menghubungkan pengguna dengan backend API.  
-Fitur utamanya meliputi proses transaksi, pengelolaan produk, dan tampilan laporan penjualan.
+Aplikasi ini menyediakan antarmuka pengguna berbasis **React.js** yang terhubung dengan backend API.  
+Fitur utamanya meliputi proses transaksi, pengelolaan produk, serta tampilan laporan penjualan.
 
 ---
 
@@ -43,25 +43,26 @@ npm install
 
 ### 3️⃣ Konfigurasi Environment
 Buat file `.env` di root proyek:
+
 ```bash
 VITE_API_URL=http://localhost:5000/api
-VITE_MIDTRANS_CLIENT_KEY=<your-client-key>
 ```
 
 > ⚠️ **Jangan upload file `.env` ke GitHub.**  
-> Tambahkan `.env` ke `.gitignore` agar aman dari kebocoran data.
+> Tambahkan `.env` ke `.gitignore` untuk mencegah kebocoran data sensitif.
 
 ### 4️⃣ Jalankan Aplikasi
 ```bash
 npm run dev
 ```
 
-Akses di browser:  
+Akses melalui browser:  
 👉 [http://localhost:5173](http://localhost:5173)
 
 ---
 
 ## 🧩 Struktur Direktori
+
 ```bash
 frontend-warung-alzhim/
 ├── node_modules/             # Folder dependencies (otomatis dari npm install)
@@ -79,37 +80,41 @@ frontend-warung-alzhim/
 │   ├── index.css             # Styling global
 │   └── main.jsx              # Entry point aplikasi
 ├── .env                      # Variabel environment (jangan diupload ke GitHub)
+├── .env.example              # Contoh konfigurasi environment
 ├── .gitignore                # File & folder yang diabaikan Git
 ├── eslint.config.js          # Konfigurasi ESLint
 ├── index.html                # Halaman utama aplikasi
 ├── package-lock.json         # Versi dependency yang digunakan
 ├── package.json              # Metadata dan script proyek
+├── LICENSE                   # Lisensi proyek
 ├── README.md                 # Dokumentasi proyek
 ├── vercel.json               # Konfigurasi deployment ke Vercel
 └── vite.config.js            # Konfigurasi build tool Vite
+```
+
 ---
 
 ## 🧠 Fitur Utama
-✅ Registrasi & login pengguna  
-✅ Manajemen produk & stok  
-✅ Keranjang belanja & checkout  
-✅ Integrasi pembayaran digital (Midtrans)  
-✅ Laporan penjualan & statistik  
-✅ Tampilan responsif di berbagai perangkat  
+- ✅ Registrasi & login pengguna  
+- ✅ Manajemen produk & stok  
+- ✅ Keranjang belanja & checkout  
+- ✅ Integrasi pembayaran digital (Midtrans)  
+- ✅ Laporan penjualan & statistik  
+- ✅ Tampilan responsif di berbagai perangkat  
 
 ---
 
 ## 🧪 Pengujian
 - **Metode:** Black-box Testing & User Acceptance Testing (UAT)  
 - **Hasil:** Seluruh fitur utama berjalan sesuai kebutuhan.  
-- **Kepuasan Pengguna:** Rata-rata **94,33% (Sangat Baik)** berdasarkan hasil UAT.
+- **Kepuasan Pengguna:** Rata-rata **94,33% (Sangat Baik)** berdasarkan hasil UAT.  
 
 ---
 
 ## 🛠️ Maintenance Implementation
 Tahap *Maintenance* dilakukan untuk memastikan sistem dapat berfungsi dan dikembangkan secara berkelanjutan.  
-Langkah-langkah yang dilakukan pada tahap ini meliputi:
-- 📄 Penyusunan dokumentasi teknis (file `README.md`)  
+Langkah-langkah yang dilakukan meliputi:
+- 📄 Penyusunan dokumentasi teknis (`README.md`)  
 - 🔄 Pengelolaan kode sumber menggunakan Git & GitHub  
 - 🔓 Penggunaan lisensi terbuka **LGPL v3.0**  
 - 🌐 Publikasi repositori agar dapat diakses untuk pembelajaran & pengembangan lanjutan  
@@ -118,13 +123,13 @@ Langkah-langkah yang dilakukan pada tahap ini meliputi:
 
 ## 📜 Lisensi
 Proyek ini dilisensikan di bawah **GNU Lesser General Public License v3.0**.  
-Lihat file [LICENSE](./LICENSE) untuk detail lengkap.
+Lihat file [LICENSE](./LICENSE) untuk detail lengkap.  
 
 ---
 
 ## 👩‍💻 Pengembang
-- **Alfia Meilani Putri** –  
-  Fakultas Ilmu Komputer, Universitas Singaperbangsa Karawang (2025)
+**Alfia Meilani Putri**  
+Fakultas Ilmu Komputer, Universitas Singaperbangsa Karawang (2025)  
 
-📎 Repositori Backend:  
-🔗 [https://github.com/alfiameilaniputri/backend-warung-alzhim](https://github.com/alfiameilaniputri/backend-warung-alzhim)
+📎 **Repositori Backend:**  
+[https://github.com/alfiameilaniputri/backend-warung-alzhim](https://github.com/alfiameilaniputri/backend-warung-alzhim)
