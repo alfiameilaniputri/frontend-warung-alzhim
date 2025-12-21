@@ -176,7 +176,7 @@ export default function Sidebar() {
                 Warung Alzhim
               </p>
               <p className="text-xs text-neutral-600 truncate">
-                ucansr@gmail.com
+                ucansr05@gmail.com
               </p>
             </div>
           </div>
