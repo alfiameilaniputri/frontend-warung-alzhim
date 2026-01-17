@@ -18,6 +18,12 @@ Fitur utamanya meliputi proses transaksi, pengelolaan produk, serta tampilan lap
 
 ---
 
+🌐 Versi Live (Deployment)
+Aplikasi ini telah dideploy dan dapat diakses secara publik melalui:
+👉 https://warung-alzhim.vercel.app/
+
+Versi ini digunakan untuk demonstrasi fitur utama seperti katalog produk, proses pemesanan, dan tampilan antarmuka pengguna secara real-time tanpa perlu menjalankan aplikasi secara lokal.
+
 ## ⚙️ Teknologi yang Digunakan
 - ⚛️ React.js  
 - 🧭 React Router DOM  
